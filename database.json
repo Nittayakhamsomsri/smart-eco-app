@@ -1,0 +1,25 @@
+{
+  "users": {
+    "0828534895": {
+      "name": "คุณรักษ์โลก",
+      "password": "123456",
+      "points": 1250,
+      "phone": "0828534895",
+      "role": "user"
+    }
+  },
+  "rewards": {
+    "R001": {
+      "name": "คูปองส่วนลด 20.-",
+      "points": 200,
+      "icon": "https://cdn-icons-png.flaticon.com/512/726/726448.png",
+      "qr": "https://api.qrserver.com/v1/create-qr-code/?data=DISCOUNT20"
+    },
+    "R002": {
+      "name": "ถุงผ้า Eco Bag",
+      "points": 500,
+      "icon": "https://cdn-icons-png.flaticon.com/512/3050/3050162.png",
+      "qr": "https://api.qrserver.com/v1/create-qr-code/?data=ECOBAG"
+    }
+  }
+}

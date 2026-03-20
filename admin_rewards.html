@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Rewards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2D68C4;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #cbd5e1;
+            margin: 0;
+        }
+
+        .phone-wrapper {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #f1f5f9;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-header {
+            background: var(--white);
+            padding: 35px 20px;
+            text-align: center;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 15px 15px 100px 15px;
+        }
+
+        .admin-card {
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 12px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-family: 'Kanit';
+        }
+
+        .add-btn {
+            width: 100%;
+            padding: 12px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .reward-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            margin-bottom: 8px;
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            cursor: pointer;
+        }
+
+        .reward-icon {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            margin-right: 15px;
+            border-radius: 8px;
+            background: #f8fafc;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-radius: 22px 22px 0 0;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn {
+            border: none;
+            background: none;
+            font-family: 'Kanit';
+            font-size: 0.75rem;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+
+        .nav-btn.active {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .nav-btn span {
+            display: block;
+            font-size: 1.3rem;
+        }
+
+        .btn-cancel {
+            background: none;
+            border: none;
+            color: #64748b;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="phone-wrapper">
+        <div class="admin-header">
+            <h2>🎁 จัดการของรางวัล</h2>
+        </div>
+        <div class="content-area">
+            <div class="admin-card">
+                <h5 id="form-title">➕ เพิ่มรางวัลใหม่</h5>
+                <input type="hidden" id="edit-id">
+                <div class="form-group"><input type="text" id="reward-name" placeholder="ชื่อรางวัล"></div>
+                <div class="form-group">
+                    <select id="reward-category">
+                        <option value="แลกเงิน">💰 แลกเงิน</option>
+                        <option value="E-Book">📚 E-Book</option>
+                    </select>
+                </div>
+                <div class="form-group"><input type="number" id="reward-points" placeholder="แต้มที่ใช้"></div>
+                <div class="form-group"><input type="text" id="reward-cover-url" placeholder="ลิงก์รูปหน้าปก"></div>
+                <div class="form-group"><input type="text" id="reward-img-url" placeholder="ลิงก์รูปคิวอาร์"></div>
+                
+                <button id="add-btn" class="add-btn" onclick="window.save()">บันทึก</button>
+                <button id="cancel-btn" class="btn-cancel" onclick="window.resetForm()">ยกเลิกการแก้ไข</button>
+            </div>
+            
+            <h5 style="margin-left: 5px; color: #64748b;">(คลิกที่รายการเพื่อแก้ไข)</h5>
+            <div id="reward-list"></div>
+        </div>
+        
+        <div class="bottom-nav">
+            <button class="nav-btn" onclick="location.href='admin_home.html'"><span>📊</span>หน้าแรก</button>
+            <button class="nav-btn" onclick="location.href='admin_reports.html'"><span>📩</span>ปัญหา</button>
+            <button class="nav-btn" onclick="location.href='admin_summary.html'"><span>📑</span>สรุปผล</button>
+            <button class="nav-btn active" onclick="location.href='admin_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" onclick="location.href='admin_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, set, remove, update } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+        
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // ดึงข้อมูลมาแสดงผล
+        onValue(ref(db, 'rewards'), snap => {
+            const data = snap.val();
+            const cont = document.getElementById('reward-list');
+            if (data) {
+                cont.innerHTML = Object.keys(data).map(k => {
+                    const r = data[k];
+                    return `
+                    <div class="reward-item" onclick="window.edit('${k}', '${r.name}', '${r.category}', ${r.points}, '${r.img}', '${r.qr}')">
+                        <img src="${r.img}" class="reward-icon" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3126/3126935.png'">
+                        <div style="flex:1">
+                            <b>${r.name}</b><br>
+                            <small>${r.points} แต้ม | ${r.category}</small>
+                        </div>
+                        <button onclick="event.stopPropagation(); window.del('${k}')" style="color:red; border:none; background:none; cursor:pointer; padding: 10px;">ลบ</button>
+                    </div>`;
+                }).join('');
+            } else {
+                cont.innerHTML = "<p style='text-align:center; color:gray;'>ไม่มีรายการรางวัล</p>";
+            }
+        });
+
+        // ฟังก์ชันดึงข้อมูลใส่ฟอร์มเพื่อแก้ไข
+        window.edit = (id, name, cat, pts, img, qr) => {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('reward-name').value = name;
+            document.getElementById('reward-category').value = cat;
+            document.getElementById('reward-points').value = pts;
+            document.getElementById('reward-cover-url').value = img;
+            document.getElementById('reward-img-url').value = qr;
+
+            document.getElementById('form-title').innerText = "📝 แก้ไขข้อมูลรางวัล";
+            document.getElementById('add-btn').innerText = "ยืนยันการแก้ไข";
+            document.getElementById('add-btn').style.background = "#2D68C4";
+            document.getElementById('cancel-btn').style.display = "block";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // ฟังก์ชันล้างฟอร์ม
+        window.resetForm = () => {
+            document.getElementById('edit-id').value = "";
+            document.getElementById('reward-name').value = "";
+            document.getElementById('reward-points').value = "";
+            document.getElementById('reward-cover-url').value = "";
+            document.getElementById('reward-img-url').value = "";
+            document.getElementById('form-title').innerText = "➕ เพิ่มรางวัลใหม่";
+            document.getElementById('add-btn').innerText = "บันทึก";
+            document.getElementById('add-btn').style.background = "#10b981";
+            document.getElementById('cancel-btn').style.display = "none";
+        };
+
+        // ฟังก์ชันบันทึก (ทั้งเพิ่มใหม่และแก้ไข)
+        window.save = () => {
+            const id = document.getElementById('edit-id').value;
+            const name = document.getElementById('reward-name').value;
+            const pts = parseInt(document.getElementById('reward-points').value);
+            const cat = document.getElementById('reward-category').value;
+            const img = document.getElementById('reward-cover-url').value;
+            const qr = document.getElementById('reward-img-url').value;
+
+            if (!name || isNaN(pts)) return alert('กรุณากรอกชื่อและแต้มให้ถูกต้อง');
+
+            const rewardData = { name, points: pts, category: cat, img, qr };
+            
+            if (id) {
+                // ถ้ามี ID แสดงว่าเป็นการแก้ไข
+                update(ref(db, 'rewards/' + id), rewardData)
+                    .then(() => {
+                        alert('แก้ไขข้อมูลสำเร็จ');
+                        window.resetForm();
+                    });
+            } else {
+                // ถ้าไม่มี ID แสดงว่าเป็นการเพิ่มใหม่
+                const newId = 'R' + Date.now();
+                set(ref(db, 'rewards/' + newId), rewardData)
+                    .then(() => {
+                        alert('เพิ่มรางวัลใหม่สำเร็จ');
+                        window.resetForm();
+                    });
+            }
+        };
+
+        window.del = (id) => {
+            if (confirm('คุณแน่ใจหรือไม่ว่าต้องการลบรางวัลนี้?')) {
+                remove(ref(db, 'rewards/' + id)).then(() => alert('ลบสำเร็จ'));
+            }
+        };
+    </script>
+</body>
+
+</html>

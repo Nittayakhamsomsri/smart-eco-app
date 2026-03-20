@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Eco - Admin Chat (AI Auto)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-blue: #2D68C4; --mint-green: #98FFD9; --bg-gray: #f1f5f9; }
+        body { font-family: 'Kanit', sans-serif; background: #cbd5e1; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .phone-wrapper { width: 100%; max-width: 500px; height: 100vh; background: var(--bg-gray); display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .chat-header { background: white; padding: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #e2e8f0; }
+        .back-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--primary-blue); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: #ddd; object-fit: cover; }
+        #chat-content { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 0.9rem; line-height: 1.4; position: relative; }
+        .msg.user { align-self: flex-start; background: white; color: #334155; border-bottom-left-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .msg.admin { align-self: flex-end; background: var(--primary-blue); color: white; border-bottom-right-radius: 4px; }
+        .msg.ai { align-self: flex-end; background: #6366f1; color: white; border-bottom-right-radius: 4px; border: 2px solid #bae6fd; }
+        .time { font-size: 0.65rem; opacity: 0.7; display: block; margin-top: 5px; text-align: right; }
+        .chat-input-area { background: white; padding: 15px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #e2e8f0; }
+        .chat-input { flex: 1; border: 1px solid #e2e8f0; padding: 12px; border-radius: 25px; outline: none; font-family: 'Kanit'; }
+        .send-btn { background: var(--primary-blue); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+        .ai-status { font-size: 0.75rem; color: #6366f1; text-align: center; margin: 10px 0; display: none; background: #eef2ff; padding: 5px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="phone-wrapper">
+    <div class="chat-header">
+        <button class="back-btn" onclick="history.back()">❮</button>
+        <img id="header-pic" src="https://www.w3schools.com/howto/img_avatar.png" class="user-avatar">
+        <div>
+            <div id="header-name" style="font-weight: 600; font-size: 1rem;">กำลังโหลด...</div>
+            <div id="header-status" style="font-size: 0.7rem; color: #10b981;">กำลังประมวลผลโดย AI</div>
+        </div>
+    </div>
+
+    <div id="chat-content"></div>
+    <div id="ai-typing" class="ai-status">✨ AI กำลังประเมินสถานการณ์และตอบกลับ...</div>
+
+    <div class="chat-input-area">
+        <input type="text" id="message-input" class="chat-input" placeholder="พิมพ์ข้อความตอบกลับ...">
+        <button id="send-btn" class="send-btn">🚀</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue, push, get } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ",
+        authDomain: "smart-eco-app.firebaseapp.com",
+        databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "smart-eco-app",
+        storageBucket: "smart-eco-app.firebasestorage.app",
+        messagingSenderId: "126722469073",
+        appId: "1:126722469073:web:01d58d4373305fc36c29f0"
+    };
+
+    const GEMINI_API_KEY = "AIzaSyCOhO3QeY1g6kMKusy4a4FXBo4K9vUf0DY";
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const reportId = urlParams.get('reportId');
+    const userId = urlParams.get('userId');
+
+    // ฟังก์ชันตอบกลับอัตโนมัติ
+    async function autoReplyAI(userMessage) {
+        const aiTyping = document.getElementById('ai-typing');
+        aiTyping.style.display = 'block';
+
+        const prompt = `คุณเป็นระบบตอบกลับอัตโนมัติของแอป Smart Eco ประเมินปัญหา: "${userMessage}" ตอบกลับสั้นๆ สุภาพ และให้ความมั่นใจว่าจะเร่งตรวจสอบให้ (ตอบในนาม AI Support)`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await response.json();
+            const aiText = data.candidates[0].content.parts[0].text;
+
+            // บันทึกลง Firebase ใน Node แชท
+            await push(ref(db, `chats/${reportId}`), {
+                sender: 'ai',
+                text: aiText,
+                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+            });
+        } catch (e) { console.error("AI Error:", e); }
+        aiTyping.style.display = 'none';
+    }
+
+    // ดึงข้อมูลแชทและเช็คว่าต้องตอบ AI ไหม
+    onValue(ref(db, `chats/${reportId}`), async (snap) => {
+        const data = snap.val();
+        const container = document.getElementById('chat-content');
+        
+        if (!data) {
+            // ถ้ายังไม่มีแชทเลย ให้ไปดึงปัญหาจากรายงานมาเป็นข้อความแรก
+            const reportSnap = await get(ref(db, `reports/${reportId}`));
+            const report = reportSnap.val();
+            if (report) {
+                const initialText = report.message || "แจ้งปัญหาการใช้งาน";
+                await push(ref(db, `chats/${reportId}`), {
+                    sender: 'user',
+                    text: initialText,
+                    time: report.date || "เมื่อสักครู่"
+                });
+                // หลังจาก User Message ขึ้น ให้ AI ตอบทันที
+                autoReplyAI(initialText);
+            }
+        } else {
+            // แสดงผลแชทปกติ
+            container.innerHTML = Object.values(data).map(m => `
+                <div class="msg ${m.sender}">
+                    ${m.text}
+                    <span class="time">${m.time}</span>
+                </div>
+            `).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+    });
+
+    // ดึงข้อมูล User
+    onValue(ref(db, `users/${userId}`), (snap) => {
+        const u = snap.val();
+        if(u) {
+            document.getElementById('header-name').innerText = u.name;
+            if(u.pic) document.getElementById('header-pic').src = u.pic;
+        }
+    });
+
+    // แอดมินพิมพ์ตอบเอง
+    document.getElementById('send-btn').onclick = async () => {
+        const input = document.getElementById('message-input');
+        if (!input.value.trim()) return;
+        await push(ref(db, `chats/${reportId}`), {
+            sender: 'admin',
+            text: input.value,
+            time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+        });
+        input.value = "";
+    };
+</script>
+</body>
+</html>

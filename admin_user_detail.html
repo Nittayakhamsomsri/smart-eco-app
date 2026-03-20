@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - User Detail</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --admin-blue: #1e293b; --primary-blue: #2D68C4; --mint-green: #10b981; --white: #FFFFFF; --danger: #ef4444; }
+        body { font-family: 'Kanit', sans-serif; background: #cbd5e1; margin: 0; }
+        .phone-wrapper { width: 100%; max-width: 500px; margin: 0 auto; min-height: 100vh; background: #f8fafc; display: flex; flex-direction: column; }
+        
+        .header { background: var(--primary-blue); color: white; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; position: relative; }
+        .back-btn { position: absolute; top: 25px; left: 15px; background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 10px; cursor: pointer; }
+
+        .profile-section { text-align: center; margin-top: -40px; padding: 0 20px; }
+        .detail-avatar { width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); background: #eee; object-fit: cover; }
+        
+        .info-card { background: white; margin: 15px; padding: 20px; border-radius: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .stat-box { background: #f8fafc; padding: 15px; border-radius: 15px; text-align: center; border: 1px solid #f1f5f9; }
+        .stat-box small { color: #64748b; font-size: 0.75rem; display: block; }
+        .stat-box b { font-size: 1.1rem; color: var(--primary-blue); }
+
+        /* ส่วนปุ่มจัดการที่ย้ายมาใหม่ */
+        .action-container { display: flex; gap: 10px; padding: 0 15px; margin-top: 10px; }
+        .btn-action { flex: 1; padding: 12px; border: none; border-radius: 15px; font-family: 'Kanit'; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; transition: 0.2s; }
+        .btn-edit-main { background: #e2e8f0; color: var(--primary-blue); }
+        .btn-delete-main { background: #fee2e2; color: var(--danger); }
+        .btn-action:active { transform: scale(0.95); }
+
+        .history-section { flex: 1; padding: 0 15px 100px; }
+        .history-title { margin: 20px 5px 15px; font-weight: 600; color: #334155; display: flex; align-items: center; gap: 8px; }
+        .history-item { background: white; padding: 15px; border-radius: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #f1f5f9; }
+        .hist-info b { font-size: 0.9rem; display: block; }
+        .hist-info small { color: #94a3b8; font-size: 0.75rem; }
+        .hist-val { font-weight: 700; font-size: 0.95rem; }
+        .text-plus { color: var(--mint-green); }
+        .text-minus { color: #ef4444; }
+
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 25px; }
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Kanit'; box-sizing: border-box; outline: none; }
+        .btn-save { width: 100%; padding: 12px; background: var(--primary-blue); color: white; border: none; border-radius: 12px; margin-top: 10px; cursor: pointer; font-weight: 600; font-family: 'Kanit'; }
+        .btn-cancel { width: 100%; padding: 12px; background: #f1f5f9; border: none; border-radius: 12px; margin-top: 8px; cursor: pointer; color: #64748b; font-family: 'Kanit'; }
+
+        .empty-hist { text-align: center; color: #94a3b8; padding: 40px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="phone-wrapper">
+        <div class="header">
+            <button class="back-btn" onclick="location.href='admin_users.html'">← กลับ</button>
+            <h2 style="margin:0">รายละเอียดสมาชิก</h2>
+        </div>
+
+        <div class="profile-section">
+            <img id="u-pic" src="https://www.w3schools.com/howto/img_avatar.png" class="detail-avatar">
+            <h3 id="u-name" style="margin: 10px 0 5px; color: #1e293b;">กำลังโหลด...</h3>
+            <small id="u-id" style="color: #94a3b8; font-size: 0.7rem;"></small>
+        </div>
+
+        <div class="info-card">
+            <div style="font-size: 0.9rem; color: #64748b; border-bottom: 1px solid #eee; padding-bottom: 8px;">📊 สถิติรวมทั้งหมด</div>
+            <div class="stat-grid">
+                <div class="stat-box"><small>แต้มปัจจุบัน</small><b id="u-points">0</b></div>
+                <div class="stat-box"><small>ลด CO2 (kg)</small><b id="u-co2">0.00</b></div>
+                <div class="stat-box"><small>พลาสติก (ชิ้น)</small><b id="u-plastic">0</b></div>
+                <div class="stat-box"><small>โลหะ (ชิ้น)</small><b id="u-metal">0</b></div>
+            </div>
+            <div style="margin-top: 15px; font-size: 0.85rem; color: #334155;">
+                📞 เบอร์โทรศัพท์: <span id="u-phone">-</span>
+            </div>
+        </div>
+
+        <div class="action-container">
+            <button class="btn-action btn-edit-main" onclick="window.openEditModal()">✏️ แก้ไขข้อมูล</button>
+            <button class="btn-action btn-delete-main" onclick="window.deleteThisUser()">🗑️ ลบสมาชิก</button>
+        </div>
+
+        <div class="history-section">
+            <div class="history-title">🕒 ประวัติกิจกรรม</div>
+            <div id="history-list">
+                <div class="empty-hist">กำลังโหลดประวัติ...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; color:var(--primary-blue);">✏️ แก้ไขข้อมูลสมาชิก</h3>
+            <div class="form-group"><label>ชื่อผู้ใช้งาน</label><input type="text" id="edit-name"></div>
+            <div class="form-group"><label>เบอร์โทรศัพท์</label><input type="text" id="edit-phone"></div>
+            <div class="form-group"><label>แต้มคงเหลือ</label><input type="number" id="edit-points"></div>
+            <div class="form-group"><label>จำนวนพลาสติก</label><input type="number" id="edit-plastic"></div>
+            <div class="form-group"><label>จำนวนโลหะ</label><input type="number" id="edit-metal"></div>
+            <button class="btn-save" onclick="window.saveUserChanges()">บันทึกการแก้ไข</button>
+            <button class="btn-cancel" onclick="window.closeModal()">ยกเลิก</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUid = urlParams.get('id');
+
+        if (!targetUid) { location.href = 'admin_users.html'; }
+
+        let userData = {};
+
+        onValue(ref(db, `users/${targetUid}`), snap => {
+            const u = snap.val();
+            if (u) {
+                userData = u;
+                document.getElementById('u-name').innerText = u.name || 'ไม่มีชื่อ';
+                document.getElementById('u-id').innerText = "UID: " + targetUid;
+                document.getElementById('u-phone').innerText = u.phone || '-';
+                document.getElementById('u-points').innerText = (u.points || 0).toLocaleString();
+                document.getElementById('u-pic').src = u.pic || 'https://www.w3schools.com/howto/img_avatar.png';
+                const p = u.plastic_count || 0, m = u.metal_count || 0;
+                document.getElementById('u-plastic').innerText = p;
+                document.getElementById('u-metal').innerText = m;
+                document.getElementById('u-co2').innerText = ((p * 0.1) + (m * 0.15)).toFixed(2);
+            }
+        });
+
+        onValue(ref(db, `history/${targetUid}`), snap => {
+            const data = snap.val();
+            const container = document.getElementById('history-list');
+            if (data) {
+                const histArray = Object.values(data).reverse();
+                container.innerHTML = histArray.map(h => {
+                    const isRedeem = h.type.includes("แลก");
+                    return `
+                        <div class="history-item">
+                            <div class="hist-info"><b>${h.type}</b><small>📅 ${h.date}</small></div>
+                            <div class="hist-val ${isRedeem ? 'text-minus' : 'text-plus'}">${isRedeem ? '-' : '+'}${Math.abs(h.points || 0).toLocaleString()}</div>
+                        </div>`;
+                }).join('');
+            } else { container.innerHTML = `<div class="empty-hist">ไม่มีประวัติกิจกรรม</div>`; }
+        });
+
+        window.openEditModal = () => {
+            document.getElementById('edit-name').value = userData.name || '';
+            document.getElementById('edit-phone').value = userData.phone || '';
+            document.getElementById('edit-points').value = userData.points || 0;
+            document.getElementById('edit-plastic').value = userData.plastic_count || 0;
+            document.getElementById('edit-metal').value = userData.metal_count || 0;
+            document.getElementById('edit-modal').style.display = 'flex';
+        };
+
+        window.closeModal = () => document.getElementById('edit-modal').style.display = 'none';
+
+        window.saveUserChanges = () => {
+            const updatedData = {
+                name: document.getElementById('edit-name').value,
+                phone: document.getElementById('edit-phone').value,
+                points: parseInt(document.getElementById('edit-points').value) || 0,
+                plastic_count: parseInt(document.getElementById('edit-plastic').value) || 0,
+                metal_count: parseInt(document.getElementById('edit-metal').value) || 0
+            };
+            update(ref(db, `users/${targetUid}`), updatedData).then(() => {
+                alert("อัปเดตสำเร็จ"); window.closeModal();
+            });
+        };
+
+        window.deleteThisUser = () => {
+            if (confirm(`ลบสมาชิก "${userData.name}"?`)) {
+                Promise.all([remove(ref(db, `users/${targetUid}`)), remove(ref(db, `history/${targetUid}`))])
+                .then(() => location.href = 'admin_users.html');
+            }
+        };
+    </script>
+</body>
+</html>

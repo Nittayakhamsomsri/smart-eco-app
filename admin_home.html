@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Smart Eco - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --admin-blue: #1e293b; --primary-blue: #2D68C4; --white: #FFFFFF; --text-gray: #64748b; --eco-green: #065f46; --mint-green: #10b981; }
+        body { font-family: 'Kanit', sans-serif; background: #cbd5e1; margin: 0; }
+        .phone-wrapper { width: 100%; max-width: 500px; margin: 0 auto; min-height: 100vh; background: #f1f5f9; display: flex; flex-direction: column; }
+        .admin-header { background: var(--white); padding: 35px 20px 25px; text-align: center; border-bottom: 2px solid #f1f5f9; }
+        .admin-header h2 { margin: 0; font-weight: 600; color: var(--primary-blue); font-size: 1.8rem; }
+        .content-area { flex: 1; padding: 15px 15px 120px 15px; overflow-y: auto; }
+
+        /* Summary Cards */
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .summary-card { background: var(--white); padding: 20px; border-radius: 25px; text-align: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s; border: 1.5px solid transparent; }
+        .summary-card:active { transform: scale(0.98); background: #f8fafc; }
+        .summary-card h2 { margin: 5px 0; font-size: 1.6rem; color: var(--primary-blue); font-weight: 700; }
+        .summary-card small { color: var(--text-gray); font-size: 0.75rem; font-weight: 500; }
+        .border-blue { border-color: rgba(45, 104, 196, 0.2); }
+        .bg-red-light { background: #fee2e2 !important; border-color: #fecaca; }
+
+        /* Podium Section */
+        .podium-container { display: flex; justify-content: center; align-items: flex-end; gap: 5px; margin: 25px 0 10px; min-height: 150px; }
+        .podium-box { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; width: 33%; opacity: 0; transition: opacity 0.5s; }
+        .podium-box.show { opacity: 1; }
+        .rank-2 { order: 1; } .rank-1 { order: 2; transform: translateY(-15px); z-index: 2; } .rank-3 { order: 3; }
+        .avatar-wrapper { position: relative; width: 70px; height: 70px; background: #e2e8f0; border-radius: 50%; }
+        .rank-1 .avatar-wrapper { width: 90px; height: 90px; }
+        .podium-avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .rank-1 .podium-avatar-img { border-color: #FFD700; }
+        .badge-icon { position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%); background: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; box-shadow: 0 3px 6px rgba(0,0,0,0.2); font-weight: bold; }
+        .podium-name { font-size: 0.75rem; font-weight: 500; color: #334155; margin-top: 10px; width: 90%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .podium-val { font-weight: 700; font-size: 0.85rem; }
+
+        /* Banner & List */
+        .stat-banner { color: white; padding: 12px; border-radius: 18px; margin: 30px 0 10px; text-align: center; font-weight: 600; font-size: 0.9rem; }
+        .bg-blue { background: var(--primary-blue); }
+        .bg-green { background: #10b981; }
+        .user-item { background: white; padding: 12px 15px; border-radius: 18px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .rank-num { font-weight: 700; width: 25px; color: #94a3b8; }
+        .user-pic { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; background: #eee; }
+        .user-name { flex: 1; font-size: 0.9rem; font-weight: 500; color: #334155; }
+        .user-val { font-weight: 700; font-size: 0.9rem; }
+
+        /* Navigation - ปรับเหลือ 4 ปุ่ม */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-radius: 22px 22px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 1000; }
+        .nav-btn { border: none; background: none; font-family: 'Kanit'; font-size: 0.7rem; color: #94a3b8; cursor: pointer; width: 25%; text-align: center; }
+        .nav-btn.active { color: var(--primary-blue); font-weight: 600; }
+        .nav-btn span { display: block; font-size: 1.2rem; margin-bottom: 2px; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-height: 80%; padding: 25px; border-radius: 30px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="phone-wrapper">
+        <div class="admin-header"><h2>📊 แดชบอร์ด</h2></div>
+        
+        <div class="content-area">
+            <div class="summary-grid">
+                <div class="summary-card border-blue" onclick="window.showFull()">
+                    <small>ผู้ใช้งานทั้งหมด</small>
+                    <h2 id="total-users">0</h2>
+                </div>
+                <div class="summary-card border-blue" onclick="location.href='admin_users.html'">
+                    <small>จัดการสมาชิก</small>
+                    <h2>👤</h2>
+                </div>
+                <div class="summary-card bg-red-light" style="grid-column: span 2;" onclick="location.href='admin_reports.html'">
+                    <small style="color:#ef4444">แจ้งปัญหา (รอดำเนินการ)</small>
+                    <h2 id="pending-count" style="color:#ef4444">0</h2>
+                </div>
+            </div>
+
+            <div class="stat-banner bg-blue">🏆 Top 3 สะสมแต้มสูงสุด</div>
+            <div id="pts-podium" class="podium-container"></div>
+            <div id="pts-list"></div>
+
+            <div class="stat-banner bg-green">🌿 Top 3 ลด CO2 เยอะที่สุด</div>
+            <div id="co2-podium" class="podium-container"></div>
+            <div id="co2-list"></div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" onclick="location.href='admin_home.html'"><span>📊</span>หน้าแรก</button>
+            <button class="nav-btn" onclick="location.href='admin_reports.html'"><span>📩</span>ปัญหา</button>
+            <button class="nav-btn" onclick="location.href='admin_summary.html'"><span>📑</span>สรุปผล</button>
+            <button class="nav-btn" onclick="location.href='admin_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" onclick="location.href='admin_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </nav>
+    </div>
+
+    <div id="full-user-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="color:var(--primary-blue); margin-top:0;">👥 รายชื่อผู้ใช้งานทั้งหมด</h3>
+            <div id="all-users-list"></div>
+            <button onclick="document.getElementById('full-user-modal').style.display='none'" style="width:100%; padding:15px; margin-top:20px; border-radius:15px; border:none; background:#f1f5f9; font-family:'Kanit'; font-weight:600; cursor:pointer;">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let masterUsers = [];
+
+        async function initDashboard() {
+            try {
+                onValue(ref(db, 'reports'), snap => {
+                    const data = snap.val();
+                    const count = data ? Object.values(data).filter(r => r.status === 'รอดำเนินการ').length : 0;
+                    document.getElementById('pending-count').innerText = count;
+                });
+
+                const usersSnap = await get(ref(db, 'users'));
+                if (usersSnap.exists()) {
+                    masterUsers = Object.values(usersSnap.val());
+                    document.getElementById('total-users').innerText = masterUsers.length.toLocaleString();
+                    setTimeout(() => renderAllStats(), 300);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function renderAllStats() {
+            const sortedPts = [...masterUsers].sort((a,b) => (b.points || 0) - (a.points || 0));
+            renderPodium('pts-podium', sortedPts.slice(0, 3), 'pts', 'var(--primary-blue)', false);
+            renderList('pts-list', sortedPts.slice(3, 8), 'pts', 'var(--primary-blue)', false);
+
+            const sortedCO2 = masterUsers.map(u => ({
+                ...u,
+                co2: (u.plastic_count || 0) * 0.1 + (u.metal_count || 0) * 0.15
+            })).sort((a,b) => b.co2 - a.co2);
+            renderPodium('co2-podium', sortedCO2.slice(0, 3), 'kg', '#065f46', true);
+            renderList('co2-list', sortedCO2.slice(3, 8), 'kg', '#065f46', true);
+        }
+
+        function renderPodium(id, arr, unit, color, isCO2) {
+            const container = document.getElementById(id);
+            container.innerHTML = arr.map((u, i) => {
+                const rank = i + 1;
+                const val = isCO2 ? u.co2.toFixed(1) : (u.points || 0).toLocaleString();
+                return `
+                <div class="podium-box rank-${rank} show">
+                    <div class="avatar-wrapper">
+                        <img src="${u.pic || 'https://www.w3schools.com/howto/img_avatar.png'}" class="podium-avatar-img" onerror="this.src='https://www.w3schools.com/howto/img_avatar.png'">
+                        <div class="badge-icon">${rank===1?'🥇':rank===2?'🥈':'🥉'}</div>
+                    </div>
+                    <div class="podium-name">${u.name || 'User'}</div>
+                    <div class="podium-val" style="color:${color}">${val} ${unit}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderList(id, arr, unit, color, isCO2) {
+            const container = document.getElementById(id);
+            container.innerHTML = arr.map((u, i) => {
+                const val = isCO2 ? u.co2.toFixed(1) : (u.points || 0).toLocaleString();
+                return `
+                <div class="user-item">
+                    <span class="rank-num">${i + 4}</span>
+                    <img src="${u.pic || 'https://www.w3schools.com/howto/img_avatar.png'}" class="user-pic" onerror="this.src='https://www.w3schools.com/howto/img_avatar.png'">
+                    <span class="user-name">${u.name || 'User'}</span>
+                    <span class="user-val" style="color:${color}">${val} ${unit}</span>
+                </div>`;
+            }).join('');
+        }
+
+        window.showFull = () => {
+            const modal = document.getElementById('full-user-modal');
+            const listContainer = document.getElementById('all-users-list');
+            listContainer.innerHTML = masterUsers.sort((a,b) => (b.points || 0) - (a.points || 0)).map((u, i) => `
+                <div class="user-item">
+                    <span class="rank-num" style="font-size:0.7rem">${i+1}</span>
+                    <img src="${u.pic || 'https://www.w3schools.com/howto/img_avatar.png'}" class="user-pic">
+                    <span class="user-name">${u.name || 'User'}</span>
+                    <span class="user-val" style="color:var(--primary-blue)">${(u.points || 0).toLocaleString()} pts</span>
+                </div>`).join('');
+            modal.style.display = 'flex';
+        };
+
+        initDashboard();
+    </script>
+</body>
+</html>

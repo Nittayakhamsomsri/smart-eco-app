@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Eco - ตั้งค่าโปรไฟล์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-blue: #2D68C4; --mint-green: #98FFD9; --white: #FFFFFF; }
+        body { font-family: 'Kanit', sans-serif; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .setup-container { background: white; padding: 2.5rem; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        .profile-upload-area { position: relative; width: 150px; height: 150px; margin: 0 auto 25px; }
+        #preview { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--mint-green); background: #f1f5f9; }
+        .upload-btn-badge { position: absolute; bottom: 5px; right: 5px; background: var(--primary-blue); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid white; font-size: 1.2rem; }
+        h3 { color: var(--primary-blue); margin-bottom: 10px; }
+        p { color: #64748b; font-size: 0.9rem; margin-bottom: 30px; }
+        .btn-save { width: 100%; padding: 14px; background: var(--primary-blue); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; margin-bottom: 12px; transition: 0.3s; }
+        .btn-skip { width: 100%; padding: 12px; background: none; color: #94a3b8; border: none; cursor: pointer; font-size: 0.9rem; }
+        .btn-save:disabled { background: #cbd5e1; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="setup-container">
+    <h3>รูปโปรไฟล์</h3>
+    <p>เพิ่มรูปถ่ายของคุณเพื่อให้เพื่อนๆ จำคุณได้</p>
+    
+    <div class="profile-upload-area">
+        <img id="preview" src="https://www.w3schools.com/howto/img_avatar.png">
+        <label for="file-input" class="upload-btn-badge">📷</label>
+        <input type="file" id="file-input" hidden accept="image/*">
+    </div>
+
+    <button id="saveBtn" class="btn-save" disabled>ใช้รูปนี้</button>
+    <button id="skipBtn" class="btn-skip">ไว้ตั้งค่าภายหลัง</button>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import { getDatabase, ref, update } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ",
+        authDomain: "smart-eco-app.firebaseapp.com",
+        databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "smart-eco-app",
+        storageBucket: "smart-eco-app.firebasestorage.app",
+        messagingSenderId: "126722469073",
+        appId: "1:126722469073:web:01d58d4373305fc36c29f0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const phone = urlParams.get('phone');
+    if(!phone) window.location.href = 'index.html';
+
+    const fileInput = document.getElementById('file-input');
+    const preview = document.getElementById('preview');
+    const saveBtn = document.getElementById('saveBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    let base64Image = "";
+
+    // พรีวิวรูปภาพ
+    fileInput.onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = event => {
+                base64Image = event.target.result;
+                preview.src = base64Image;
+                saveBtn.disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    // บันทึกรูป
+    saveBtn.onclick = () => {
+        saveBtn.innerText = "กำลังบันทึก...";
+        update(ref(db, 'users/' + phone), { pic: base64Image })
+        .then(() => {
+            alert("ตั้งค่าโปรไฟล์เรียบร้อย!");
+            window.location.href = 'index.html';
+        });
+    };
+
+    // กดข้าม
+    skipBtn.onclick = () => {
+        window.location.href = 'index.html';
+    };
+</script>
+</body>
+</html>

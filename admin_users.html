@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Users</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --admin-blue: #1e293b; --primary-blue: #2D68C4; --white: #FFFFFF; --danger: #ef4444; --success: #10b981; }
+        body { font-family: 'Kanit', sans-serif; background: #cbd5e1; margin: 0; }
+        .phone-wrapper { width: 100%; max-width: 500px; margin: 0 auto; min-height: 100vh; background: #f1f5f9; display: flex; flex-direction: column; position: relative; }
+        .admin-header { background: var(--white); padding: 25px; text-align: center; border-bottom: 2px solid #f1f5f9; position: sticky; top: 0; z-index: 100; }
+        
+        .content-area { flex: 1; padding: 15px 15px 100px; }
+        
+        /* Search & Add */
+        .tool-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-input { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #ddd; font-family: 'Kanit'; outline: none; }
+        .btn-add { background: var(--primary-blue); color: white; border: none; padding: 0 15px; border-radius: 12px; cursor: pointer; font-size: 1.2rem; }
+
+        /* User Card */
+        .user-card { background: white; border-radius: 20px; padding: 15px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .user-card:active { transform: scale(0.98); background: #f8fafc; }
+        .user-pic { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #eee; }
+        .user-info { flex: 1; }
+        .user-info b { display: block; font-size: 0.95rem; color: #334155; }
+        .user-info small { color: #64748b; font-size: 0.75rem; }
+        
+        .action-btns { display: flex; flex-direction: column; gap: 5px; }
+        .btn-edit { background: #f1f5f9; color: var(--primary-blue); border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
+        .btn-del { background: #fee2e2; color: var(--danger); border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: 600; }
+
+        /* Bottom Nav - ปรับเหลือ 4 ปุ่ม */
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-radius: 22px 22px 0 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 100; }
+        .nav-btn { border: none; background: none; font-family: 'Kanit'; font-size: 0.7rem; color: #94a3b8; cursor: pointer; width: 25%; text-align: center; }
+        .nav-btn.active { color: var(--primary-blue); font-weight: 600; }
+        .nav-btn span { display: block; font-size: 1.2rem; margin-bottom: 2px; }
+
+        /* Modal Settings (คงเดิม) */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 25px; }
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Kanit'; box-sizing: border-box; }
+        .btn-save { width: 100%; padding: 12px; background: var(--primary-blue); color: white; border: none; border-radius: 12px; margin-top: 10px; cursor: pointer; font-weight: 600; }
+        .btn-cancel { width: 100%; padding: 12px; background: #f1f5f9; border: none; border-radius: 12px; margin-top: 8px; cursor: pointer; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="phone-wrapper">
+        <div class="admin-header">
+            <h2 style="margin:0; font-size: 1.4rem; color:var(--primary-blue)">จัดการผู้ใช้งาน</h2>
+        </div>
+
+        <div class="content-area">
+            <div class="tool-bar">
+                <input type="text" id="search-box" class="search-input" placeholder="ค้นหาชื่อผู้ใช้..." onkeyup="window.filterUsers()">
+                <button class="btn-add" onclick="window.openAddModal()">+</button>
+            </div>
+
+            <div id="user-list-container">
+                <div style="text-align:center; padding:50px; color:gray;">กำลังโหลดข้อมูล...</div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn" onclick="location.href='admin_home.html'"><span>📊</span>หน้าแรก</button>
+            <button class="nav-btn" onclick="location.href='admin_reports.html'"><span>📩</span>ปัญหา</button>
+            <button class="nav-btn" onclick="location.href='admin_summary.html'"><span>📑</span>สรุปผล</button>
+            <button class="nav-btn" onclick="location.href='admin_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" onclick="location.href='admin_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </nav>
+    </div>
+
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-title">แก้ไขข้อมูล</h3>
+            <input type="hidden" id="edit-uid">
+            <div class="form-group">
+                <label>ชื่อ-นามสกุล</label>
+                <input type="text" id="edit-name">
+            </div>
+            <div class="form-group">
+                <label>แต้มสะสม (Points)</label>
+                <input type="number" id="edit-points">
+            </div>
+            <div class="form-group">
+                <label>ขยะพลาสติก (ชิ้น)</label>
+                <input type="number" id="edit-plastic">
+            </div>
+            <div class="form-group">
+                <label>ขยะโลหะ (ชิ้น)</label>
+                <input type="number" id="edit-metal">
+            </div>
+            <button class="btn-save" onclick="window.saveUserData()">บันทึกข้อมูล</button>
+            <button class="btn-cancel" onclick="window.closeModal()">ยกเลิก</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, remove, set } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let masterUsers = [];
+
+        onValue(ref(db, 'users'), snap => {
+            const data = snap.val();
+            if (data) {
+                masterUsers = Object.keys(data).map(key => ({ uid: key, ...data[key] }));
+                renderUsers(masterUsers);
+            }
+        });
+
+        function renderUsers(list) {
+            const container = document.getElementById('user-list-container');
+            container.innerHTML = list.map(u => `
+                <div class="user-card" onclick="location.href='admin_user_detail.html?id=${u.uid}'">
+                    <img src="${u.pic || 'https://www.w3schools.com/howto/img_avatar.png'}" class="user-pic">
+                    <div class="user-info">
+                        <b>${u.name || 'ไม่มีชื่อ'}</b>
+                        <small>แต้ม: ${(u.points || 0).toLocaleString()} | P: ${u.plastic_count || 0} | M: ${u.metal_count || 0}</small>
+                        <small style="display:block; color:#94a3b8; font-size:0.6rem;">UID: ${u.uid}</small>
+                    </div>
+                    <div class="action-btns" onclick="event.stopPropagation()">
+                        <button class="btn-edit" onclick="window.openEditModal('${u.uid}')">แก้ไข</button>
+                        <button class="btn-del" onclick="window.deleteUser('${u.uid}', '${u.name}')">ลบ</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.filterUsers = () => {
+            const term = document.getElementById('search-box').value.toLowerCase();
+            const filtered = masterUsers.filter(u => u.name.toLowerCase().includes(term) || u.uid.toLowerCase().includes(term));
+            renderUsers(filtered);
+        };
+
+        window.openEditModal = (uid) => {
+            const u = masterUsers.find(item => item.uid === uid);
+            document.getElementById('modal-title').innerText = "แก้ไขข้อมูลผู้ใช้";
+            document.getElementById('edit-uid').value = uid;
+            document.getElementById('edit-name').value = u.name || '';
+            document.getElementById('edit-points').value = u.points || 0;
+            document.getElementById('edit-plastic').value = u.plastic_count || 0;
+            document.getElementById('edit-metal').value = u.metal_count || 0;
+            document.getElementById('user-modal').style.display = 'flex';
+        };
+
+        window.openAddModal = () => {
+            document.getElementById('modal-title').innerText = "เพิ่มผู้ใช้ใหม่";
+            document.getElementById('edit-uid').value = "";
+            document.getElementById('edit-name').value = "";
+            document.getElementById('edit-points').value = 0;
+            document.getElementById('edit-plastic').value = 0;
+            document.getElementById('edit-metal').value = 0;
+            document.getElementById('user-modal').style.display = 'flex';
+        };
+
+        window.closeModal = () => document.getElementById('user-modal').style.display = 'none';
+
+        window.saveUserData = () => {
+            const uid = document.getElementById('edit-uid').value;
+            const data = {
+                name: document.getElementById('edit-name').value,
+                points: parseInt(document.getElementById('edit-points').value) || 0,
+                plastic_count: parseInt(document.getElementById('edit-plastic').value) || 0,
+                metal_count: parseInt(document.getElementById('edit-metal').value) || 0,
+            };
+
+            if (uid) {
+                update(ref(db, `users/${uid}`), data).then(() => {
+                    alert("บันทึกสำเร็จ");
+                    window.closeModal();
+                });
+            } else {
+                const newUid = "u" + Date.now();
+                set(ref(db, `users/${newUid}`), { ...data, pic: "" }).then(() => {
+                    alert("เพิ่มผู้ใช้สำเร็จ");
+                    window.closeModal();
+                });
+            }
+        };
+
+        window.deleteUser = (uid, name) => {
+            if (confirm(`ลบคุณ ${name}?`)) {
+                remove(ref(db, `users/${uid}`)).then(() => alert("ลบสำเร็จ"));
+            }
+        };
+    </script>
+</body>
+</html>

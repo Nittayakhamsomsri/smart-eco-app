@@ -1,0 +1,10 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ",
+  authDomain: "smart-eco-app.firebaseapp.com",
+  databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", // ต้องมีคำว่า .asia-southeast1
+  projectId: "smart-eco-app",
+  storageBucket: "smart-eco-app.firebasestorage.app",
+  messagingSenderId: "126722469073",
+  appId: "1:126722469073:web:01d58d4373305fc36c29f0",
+  measurementId: "G-MD69RZ6SEB"
+};

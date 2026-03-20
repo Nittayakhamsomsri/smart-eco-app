@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Eco - Rewards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2D68C4;
+            --mint-green: #98FFD9;
+            --white: #FFFFFF;
+            --dark-blue: #1e4b91;
+            --text-gray: #64748b;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #e2e8f0;
+            margin: 0;
+        }
+
+        .screen {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            margin: 0 auto;
+            background: #f8fafc;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            padding: 40px 20px 60px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* --- Side Menu (ขวา) --- */
+        .menu-trigger {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.6rem;
+            color: white;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background: white;
+            z-index: 2000;
+            transition: 0.3s;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .side-menu.active {
+            right: 0;
+        }
+
+        .menu-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            padding: 40px 20px;
+            color: white;
+            text-align: center;
+        }
+
+        #menu-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid var(--mint-green);
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
+
+        .menu-list {
+            padding: 15px 0;
+        }
+
+        .menu-item {
+            padding: 15px 25px;
+            font-size: 0.95rem;
+            color: #333;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            background: #f0f4f8;
+            color: var(--primary-blue);
+        }
+
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1500;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        /* แถบแต้มคงเหลือ */
+        .points-container {
+            background: white;
+            margin: -35px 15px 15px 15px;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 15;
+        }
+
+        .app-logo-left {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-right: 10px;
+        }
+
+        .points-center {
+            text-align: center;
+            flex: 1;
+        }
+
+        .points-value {
+            font-size: 1.8rem;
+            color: var(--primary-blue);
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .user-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+        }
+
+        .user-widget img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--mint-green);
+            object-fit: cover;
+        }
+
+        #level-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: white;
+            background: #666;
+            margin-top: 4px;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 5px 15px 100px 15px;
+        }
+
+        .category-header {
+            font-weight: 600;
+            color: var(--primary-blue);
+            font-size: 1.1rem;
+            margin: 20px 0 10px 5px;
+            border-left: 5px solid var(--mint-green);
+            padding-left: 12px;
+        }
+
+        .reward-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .reward-item {
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #f1f5f9;
+        }
+
+        .reward-item img {
+            width: 100%;
+            height: 90px;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        .btn-redeem {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-family: 'Kanit';
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 85%;
+            max-width: 350px;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            border: none;
+            background: none;
+            font-family: 'Kanit';
+            font-size: 0.75rem;
+            color: #94a3b8;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .nav-btn.active {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .nav-btn span {
+            display: block;
+            font-size: 1.3rem;
+        }
+
+        /* --- Custom About Modal สำหรับมือถือ --- */
+        .custom-about-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .about-body {
+            background: white;
+            width: 100%;
+            max-width: 320px;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: modalFadeIn 0.3s ease;
+        }
+        @keyframes modalFadeIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="screen">
+        <div class="menu-trigger" onclick="window.toggleMenu()">☰</div>
+
+        <div id="side-menu" class="side-menu">
+            <div class="menu-header">
+                <img id="menu-avatar" src="https://www.w3schools.com/howto/img_avatar.png">
+                <div id="menu-user-name" style="font-weight: 500;">กำลังโหลด...</div>
+            </div>
+            <div class="menu-list">
+                <div class="menu-item" id="menu-ebook" onclick="location.href='user_favorites.html'">📚 E-book ของฉัน</div>
+                <div class="menu-item" id="menu-stats" onclick="location.href='user_stats.html'">🏆 สถิติของฉัน</div>
+                <div class="menu-item" id="menu-report" onclick="location.href='user_reports.html'">⚠️ แจ้งปัญหา</div>
+                <div class="menu-item" id="menu-about" onclick="window.openAbout()">ℹ️ เกี่ยวกับแอป</div>
+                <div class="menu-item" id="menu-lang" onclick="window.switchLanguage()">🌐 เปลี่ยนภาษา (TH/EN)</div>
+                <hr style="border: 0.5px solid #eee; margin: 10px 0;">
+                <div class="menu-item" id="menu-logout" style="color: #ff4757;" onclick="window.logout()">ออกจากระบบ</div>
+            </div>
+        </div>
+
+        <div id="menu-overlay" class="menu-overlay" onclick="window.toggleMenu()"></div>
+
+        <div class="app-header">
+            <h1 style="margin:0">Smart Eco</h1>
+            <p id="lang-subtitle" style="margin:5px 0 0">แลกเปลี่ยนโลก เพื่ออนาคตที่ดีกว่า</p>
+        </div>
+
+        <div class="points-container">
+            <img src="logo.png" class="app-logo-left"
+                onerror="this.src='https://cdn-icons-png.flaticon.com/512/1598/1598196.png'">
+            <div class="points-center">
+                <small id="lang-points-label" style="color:var(--text-gray)">แต้มของคุณ</small>
+                <div class="points-value" id="top-points">0</div>
+            </div>
+            <div class="user-widget">
+                <img id="top-avatar" src="https://www.w3schools.com/howto/img_avatar.png">
+                <div id="level-badge">Loading...</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <h4 id="lang-content-title" style="margin: 10px 5px;">แลกของรางวัล</h4>
+            <div id="reward-display">กำลังโหลดรางวัล...</div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn" id="nav-home" onclick="location.href='user_home.html'"><span>🏠</span>หน้าแรก</button>
+            <button class="nav-btn active" id="nav-rewards" onclick="location.href='user_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" id="nav-stats" onclick="location.href='user_stats.html'"><span>🏆</span>สถิติ</button>
+            <button class="nav-btn" id="nav-profile" onclick="location.href='user_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </nav>
+    </div>
+
+    <div id="qr-modal" class="modal">
+        <div class="modal-content">
+            <h4 id="lang-success-title" style="color:var(--primary-blue)">แลกรางวัลสำเร็จ!</h4>
+            <p id="redeemed-name" style="font-size:0.9rem; color:#666"></p>
+            <img id="qr-img" style="width:200px; margin:15px 0; border:1px solid #eee;">
+            <button id="lang-close-modal" onclick="document.getElementById('qr-modal').style.display='none'" class="btn-redeem">ปิด</button>
+        </div>
+    </div>
+
+    <div id="about-modal" class="custom-about-modal" onclick="window.closeAbout()">
+        <div class="about-body" onclick="event.stopPropagation()">
+            <h3 style="margin-top: 0; color: var(--primary-blue);">Smart Eco v1.0</h3>
+            <div style="font-size: 0.95rem; color: #475569; line-height: 1.6; text-align: left; padding: 10px;">
+                แอปพลิเคชันสำหรับส่งเสริมการรีไซเคิลและแลกเปลี่ยนขยะ<br><br>
+                <b>จัดทำโดย:</b><br>
+                • นิตยา คำสมศรี (67010974005)<br>
+                • ปาริชาติ ทัพธานี (67010974010)
+            </div>
+            <button onclick="window.closeAbout()" class="btn-redeem" style="margin-top: 15px;">ตกลง</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, push, get } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const uid = sessionStorage.getItem('currentUserId');
+
+        // --- ระบบแปลภาษา ---
+        const translations = {
+            th: {
+                subtitle: "แลกเปลี่ยนโลก เพื่ออนาคตที่ดีกว่า",
+                points_label: "แต้มของคุณ",
+                content_title: "แลกของรางวัล",
+                cat_money: "แลกเงิน",
+                cat_ebook: "E-Book",
+                btn_redeem: "แลกรางวัล",
+                nav_home: "หน้าแรก", nav_rewards: "รางวัล", nav_stats: "สถิติ", nav_profile: "โปรไฟล์",
+                menu_ebook: "📚 E-book ของฉัน", menu_stats: "🏆 สถิติของฉัน", menu_report: "⚠️ แจ้งปัญหา", menu_about: "ℹ️ เกี่ยวกับแอป", menu_lang: "🌐 เปลี่ยนภาษา (TH/EN)", menu_logout: "ออกจากระบบ",
+                success: "แลกรางวัลสำเร็จ!", close: "ปิด", confirm_msg: "ยืนยันการใช้ {pts} แต้ม เพื่อแลก {name}?", no_pts: "แต้มสะสมของคุณไม่เพียงพอ"
+            },
+            en: {
+                subtitle: "Exchange the world for a better future",
+                points_label: "Your Points",
+                content_title: "Redeem Rewards",
+                cat_money: "Cash Out",
+                cat_ebook: "E-Book",
+                btn_redeem: "Redeem",
+                nav_home: "Home", nav_rewards: "Rewards", nav_stats: "Stats", nav_profile: "Profile",
+                menu_ebook: "📚 My E-books", menu_stats: "🏆 My Stats", menu_report: "⚠️ Reported Issues", menu_about: "ℹ️ About App", menu_lang: "🌐 Change Language", menu_logout: "Logout",
+                success: "Redemption Successful!", close: "Close", confirm_msg: "Use {pts} points to redeem {name}?", no_pts: "Insufficient points"
+            }
+        };
+
+        let currentLang = localStorage.getItem('appLang') || 'th';
+        let rawRewardsData = null;
+
+        window.updateLanguage = function() {
+            const lang = translations[currentLang];
+            document.getElementById('lang-subtitle').innerText = lang.subtitle;
+            document.getElementById('lang-points-label').innerText = lang.points_label;
+            document.getElementById('lang-content-title').innerText = lang.content_title;
+            document.getElementById('lang-success-title').innerText = lang.success;
+            document.getElementById('lang-close-modal').innerText = lang.close;
+
+            document.getElementById('menu-ebook').innerText = lang.menu_ebook;
+            document.getElementById('menu-stats').innerText = lang.menu_stats;
+            document.getElementById('menu-report').innerText = lang.menu_report;
+            document.getElementById('menu-about').innerText = lang.menu_about;
+            document.getElementById('menu-lang').innerText = lang.menu_lang;
+            document.getElementById('menu-logout').innerText = lang.menu_logout;
+
+            document.getElementById('nav-home').innerHTML = `<span>🏠</span>${lang.nav_home}`;
+            document.getElementById('nav-rewards').innerHTML = `<span>🎁</span>${lang.nav_rewards}`;
+            document.getElementById('nav-stats').innerHTML = `<span>🏆</span>${lang.nav_stats}`;
+            document.getElementById('nav-profile').innerHTML = `<span>👤</span>${lang.nav_profile}`;
+
+            if(rawRewardsData) renderAllRewards(rawRewardsData);
+        };
+
+        window.switchLanguage = function() {
+            currentLang = currentLang === 'th' ? 'en' : 'th';
+            localStorage.setItem('appLang', currentLang);
+            window.updateLanguage();
+        };
+
+        window.toggleMenu = function () {
+            document.getElementById('side-menu').classList.toggle('active');
+            document.getElementById('menu-overlay').classList.toggle('active');
+        };
+
+        // --- Custom Modal Functions ---
+        window.openAbout = function() {
+            document.getElementById('about-modal').style.display = 'flex';
+            window.toggleMenu(); // ปิดเมนูข้างหลัง
+        };
+        window.closeAbout = function() {
+            document.getElementById('about-modal').style.display = 'none';
+        };
+
+        window.logout = function () {
+            const confirmLogout = currentLang === 'th' ? 'ต้องการออกจากระบบใช่หรือไม่?' : 'Do you want to logout?';
+            if (confirm(confirmLogout)) {
+                sessionStorage.clear();
+                location.href = 'index.html';
+            }
+        };
+
+        function getLevelName(pts) {
+            if (pts <= 500) return "Lv.1 Bronze";
+            if (pts <= 1500) return "Lv.2 Silver";
+            if (pts <= 3000) return "Lv.3 Gold";
+            return "Lv.4 Legend";
+        }
+
+        onValue(ref(db, `users/${uid}`), (snap) => {
+            const u = snap.val();
+            if (u) {
+                document.getElementById('top-points').innerText = (u.points || 0).toLocaleString();
+                if (u.pic) {
+                    document.getElementById('top-avatar').src = u.pic;
+                    document.getElementById('menu-avatar').src = u.pic;
+                }
+                if (u.name) document.getElementById('menu-user-name').innerText = u.name;
+                document.getElementById('level-badge').innerText = getLevelName(u.points || 0);
+                window.userCurrentPoints = u.points || 0;
+            }
+        });
+
+        onValue(ref(db, 'rewards'), (snap) => {
+            rawRewardsData = snap.val();
+            renderAllRewards(rawRewardsData);
+        });
+
+        function renderAllRewards(data) {
+            const cont = document.getElementById('reward-display');
+            const lang = translations[currentLang];
+            if (data) {
+                const rewards = Object.keys(data).map(key => ({ id: key, ...data[key] }));
+                const moneyRewards = rewards.filter(r => r.category === "แลกเงิน");
+                const ebookRewards = rewards.filter(r => r.category === "E-Book");
+
+                let html = "";
+                if (moneyRewards.length > 0) {
+                    html += `<div class="category-header">${lang.cat_money}</div><div class="reward-grid">`;
+                    html += moneyRewards.map(r => renderRewardCard(r)).join('');
+                    html += `</div>`;
+                }
+                if (ebookRewards.length > 0) {
+                    html += `<div class="category-header">${lang.cat_ebook}</div><div class="reward-grid">`;
+                    html += ebookRewards.map(r => renderRewardCard(r)).join('');
+                    html += `</div>`;
+                }
+                cont.innerHTML = html || (currentLang === 'th' ? "ไม่มีรางวัล" : "No rewards available");
+            }
+        }
+
+        function renderRewardCard(r) {
+            return `
+                <div class="reward-item">
+                    <img src="${r.img || 'https://via.placeholder.com/150'}" onerror="this.src='https://via.placeholder.com/150'">
+                    <div style="font-size:0.85rem; margin-top:8px; font-weight:500; height:38px; overflow:hidden;">${r.name}</div>
+                    <div style="color:var(--primary-blue); font-weight:700; margin-top:5px;">${r.points.toLocaleString()} pts</div>
+                    <button class="btn-redeem" onclick="window.redeem('${r.id}', '${r.name}', ${r.points}, '${r.qr}', '${r.category}')">${translations[currentLang].btn_redeem}</button>
+                </div>`;
+        }
+
+        window.redeem = async (id, name, pts, qr, category) => {
+            const lang = translations[currentLang];
+            if (window.userCurrentPoints >= pts) {
+                const confirmMsg = lang.confirm_msg.replace('{pts}', pts).replace('{name}', name);
+                if (confirm(confirmMsg)) {
+                    try {
+                        const newPts = window.userCurrentPoints - pts;
+                        await update(ref(db, `users/${uid}`), { points: newPts });
+                        await push(ref(db, `history/${uid}`), {
+                            type: `แลกรางวัล: ${name}`,
+                            points: pts,
+                            category: category,
+                            date: new Date().toLocaleString('th-TH'),
+                            qr: qr || ""
+                        });
+                        document.getElementById('redeemed-name').innerText = name;
+                        document.getElementById('qr-img').src = qr || "https://api.qrserver.com/v1/create-qr-code/?data=REDEEMED";
+                        document.getElementById('qr-modal').style.display = 'flex';
+                    } catch (e) {
+                        alert(currentLang === 'th' ? 'เกิดข้อผิดพลาด' : 'An error occurred');
+                    }
+                }
+            } else {
+                alert(lang.no_pts);
+            }
+        };
+
+        window.updateLanguage();
+    </script>
+</body>
+
+</html>

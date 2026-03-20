@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Summary Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --admin-blue: #1e293b; --primary-blue: #2D68C4; --mint-green: #98FFD9; --white: #FFFFFF; --text-gray: #64748b; }
+        body { font-family: 'Kanit', sans-serif; background: #cbd5e1; margin: 0; }
+        .phone-wrapper { width: 100%; max-width: 500px; margin: 0 auto; min-height: 100vh; background: #f1f5f9; display: flex; flex-direction: column; }
+        .admin-header { background: var(--white); padding: 35px 20px; text-align: center; border-bottom: 2px solid #f1f5f9; }
+        .admin-header h2 { margin: 0; color: var(--primary-blue); font-size: 1.6rem; }
+        .content-area { flex: 1; padding: 15px 15px 100px 15px; overflow-y: auto; }
+        .filter-section { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); }
+        .filter-group { display: flex; gap: 10px; margin-top: 10px; }
+        select { flex: 1; padding: 12px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-family: 'Kanit'; outline: none; }
+        .stat-card-full { background: white; padding: 25px; border-radius: 25px; margin-bottom: 20px; text-align: center; border-left: 6px solid var(--primary-blue); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
+        .stat-val { font-size: 2.5rem; font-weight: 700; color: var(--primary-blue); }
+        .grid-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f1f5f9; }
+        .grid-item small { color: var(--text-gray); font-size: 0.75rem; }
+        .grid-item strong { display: block; font-size: 1.1rem; color: #334155; }
+        .chart-container { background: white; padding: 20px; border-radius: 25px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); text-align: center; margin-bottom: 20px; }
+        .chart-header { font-weight: 600; color: #334155; margin-bottom: 15px; display: block; }
+        #redeemChart { max-width: 250px; margin: 0 auto; }
+
+        /* ส่วนวิเคราะห์ผล */
+        .analysis-box { background: #f8fafc; padding: 15px; border-radius: 20px; margin-top: 15px; text-align: left; }
+        .analysis-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+        .analysis-item b { color: var(--primary-blue); }
+        .summary-note { font-size: 0.8rem; color: #64748b; border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px; font-style: italic; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-radius: 22px 22px 0 0; box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1); }
+        .nav-btn { border: none; background: none; font-family: 'Kanit'; font-size: 0.7rem; color: #94a3b8; cursor: pointer; text-align: center; width: 20%; }
+        .nav-btn.active { color: var(--primary-blue); font-weight: 600; }
+        .nav-btn span { display: block; font-size: 1.3rem; margin-bottom: 2px; }
+    </style>
+</head>
+
+<body>
+    <div class="phone-wrapper">
+        <div class="admin-header"><h2>📑 สรุปรายงานรวม</h2></div>
+        
+        <div class="content-area">
+            <div class="filter-section">
+                <strong>📅 เลือกช่วงเวลา</strong>
+                <div class="filter-group">
+                    <select id="filter-month">
+                        <option value="all">ทุกเดือน</option>
+                        <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option>
+                        <option value="03">มีนาคม</option><option value="04">เมษายน</option>
+                        <option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
+                        <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option>
+                        <option value="09">กันยายน</option><option value="10">ตุลาคม</option>
+                        <option value="11">พฤศจิกายน</option><option value="12">ธันวาคม</option>
+                    </select>
+                    <select id="filter-year">
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="stat-card-full">
+                <small>ขยะสะสมรวบยอด (ชิ้น)</small>
+                <div class="stat-val" id="total-items">0</div>
+                <div class="grid-stats">
+                    <div class="grid-item"><small>พลาสติก</small><strong id="p-count">0</strong></div>
+                    <div class="grid-item"><small>โลหะ</small><strong id="m-count">0</strong></div>
+                    <div class="grid-item"><small>CO2 (kg)</small><strong id="co2-count" style="color:#059669">0.0</strong></div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <span class="chart-header">📊 สัดส่วนการแลกรางวัล (จำนวนครั้ง)</span>
+                <div id="no-data-msg" style="display:none; color:gray; padding: 20px;">ไม่มีข้อมูลการแลกรางวัล</div>
+                <canvas id="redeemChart"></canvas>
+                
+                <div id="analysis-box" class="analysis-box" style="display:none;">
+                    <div class="analysis-item">
+                        <span>💰 สัดส่วนการแลกเงิน:</span>
+                        <b id="money-percent">0%</b>
+                    </div>
+                    <div class="analysis-item">
+                        <span>📚 สัดส่วนการแลก E-Book:</span>
+                        <b id="ebook-percent">0%</b>
+                    </div>
+                    <p id="analysis-text" class="summary-note">กำลังวิเคราะห์ข้อมูล...</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn" onclick="location.href='admin_home.html'"><span>📊</span>หน้าแรก</button>
+            <button class="nav-btn" onclick="location.href='admin_reports.html'"><span>📩</span>ปัญหา</button>
+            <button class="nav-btn active" onclick="location.href='admin_summary.html'"><span>📑</span>สรุปผล</button>
+            <button class="nav-btn" onclick="location.href='admin_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" onclick="location.href='admin_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </nav>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let masterData = [];
+        let myChart = null;
+
+        function updateChart(moneyCount, ebookCount) {
+            const canvas = document.getElementById('redeemChart');
+            const noData = document.getElementById('no-data-msg');
+            const analysisBox = document.getElementById('analysis-box');
+
+            if (moneyCount === 0 && ebookCount === 0) {
+                canvas.style.display = 'none';
+                noData.style.display = 'block';
+                analysisBox.style.display = 'none';
+                return;
+            }
+
+            canvas.style.display = 'block';
+            noData.style.display = 'none';
+            analysisBox.style.display = 'block';
+
+            // คำนวณเปอร์เซ็นต์
+            const total = moneyCount + ebookCount;
+            const moneyPct = ((moneyCount / total) * 100).toFixed(1);
+            const ebookPct = ((ebookCount / total) * 100).toFixed(1);
+
+            document.getElementById('money-percent').innerText = `${moneyPct}% (${moneyCount} ครั้ง)`;
+            document.getElementById('ebook-percent').innerText = `${ebookPct}% (${ebookCount} ครั้ง)`;
+            
+            // เขียนสรุปผล
+            let summaryText = "";
+            if(moneyCount > ebookCount) {
+                summaryText = "💡 ผู้ใช้งานส่วนใหญ่นิยมแลกรางวัลเป็น 'เงินสด' มากกว่า แนะนำให้เพิ่มของรางวัลประเภทเงินรางวัลเพื่อกระตุ้นยอดสะสมขยะ";
+            } else if (ebookCount > moneyCount) {
+                summaryText = "💡 รางวัลประเภท 'E-Book' ได้รับความนิยมสูง แสดงว่าผู้ใช้งานส่วนใหญ่เป็นกลุ่มที่สนใจความรู้และการอ่าน";
+            } else {
+                summaryText = "💡 ความนิยมของรางวัลทั้งสองประเภทอยู่ในระดับใกล้เคียงกัน";
+            }
+            document.getElementById('analysis-text').innerText = summaryText;
+
+            if (myChart) {
+                myChart.data.datasets[0].data = [moneyCount, ebookCount];
+                myChart.update();
+            } else {
+                myChart = new Chart(canvas.getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['แลกเงิน', 'E-Book'],
+                        datasets: [{
+                            data: [moneyCount, ebookCount],
+                            backgroundColor: ['#2D68C4', '#10b981'],
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { family: 'Kanit' } } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function renderData() {
+            const selMonth = document.getElementById('filter-month').value;
+            const selYear = document.getElementById('filter-year').value;
+
+            let stats = { p: 0, m: 0, money: 0, ebook: 0 };
+
+            masterData.forEach(item => {
+                if (!item.date) return;
+                const dateClean = item.date.replace(/-/g, '/');
+                const parts = dateClean.split('/');
+                if (parts.length < 3) return;
+
+                const mm = parts[1]?.padStart(2, '0');
+                let yy = parts[2].split(' ')[0];
+
+                // จัดการปี พ.ศ. / ค.ศ.
+                if (parseInt(yy) > 2500) yy = (parseInt(yy) - 543).toString();
+                if (yy.length === 2) yy = "20" + yy;
+
+                if ((selMonth === 'all' || mm === selMonth) && yy === selYear) {
+                    stats.p += (item.plastic || 0);
+                    stats.m += (item.metal || 0);
+
+                    const typeText = (item.type || "").toLowerCase();
+                    const category = (item.category || "").toLowerCase();
+
+                    if (category.includes("เงิน") || typeText.includes("เงิน") || typeText.includes("บาท") || typeText.includes("money")) {
+                        stats.money++;
+                    } else if (category.includes("book") || typeText.includes("book") || typeText.includes("นิยาย") || typeText.includes("ebook")) {
+                        stats.ebook++;
+                    }
+                }
+            });
+
+            document.getElementById('total-items').innerText = (stats.p + stats.m).toLocaleString();
+            document.getElementById('p-count').innerText = stats.p.toLocaleString();
+            document.getElementById('m-count').innerText = stats.m.toLocaleString();
+            document.getElementById('co2-count').innerText = (stats.p * 0.1 + stats.m * 0.15).toFixed(1);
+
+            updateChart(stats.money, stats.ebook);
+        }
+
+        onValue(ref(db, 'history'), snapshot => {
+            const data = snapshot.val();
+            masterData = [];
+            if (data) {
+                Object.keys(data).forEach(userId => {
+                    Object.values(data[userId]).forEach(record => {
+                        masterData.push(record);
+                    });
+                });
+            }
+            renderData();
+        });
+
+        document.getElementById('filter-month').onchange = renderData;
+        document.getElementById('filter-year').onchange = renderData;
+    </script>
+</body>
+</html>

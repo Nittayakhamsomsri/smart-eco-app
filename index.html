@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Eco - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2D68C4; 
+            --mint-green: #D1FAE5;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, var(--white) 0%, var(--mint-green) 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; 
+        }
+
+        /* --- วิดีโอเปิดตัว (Intro Video Overlay) --- */
+        #video-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 20000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.6s ease;
+        }
+
+        #intro-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .skip-hint {
+            position: absolute;
+            bottom: 40px;
+            color: white;
+            background: rgba(0,0,0,0.4);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            pointer-events: none;
+        }
+
+        /* --- Splash Screen --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease-out;
+        }
+
+        #logo-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo-wrapper-splash { 
+            animation: bounceIn 1.2s ease-out forwards; 
+        }
+        
+        .logo-img-splash { 
+            width: 190px; 
+            height: 190px; 
+            object-fit: contain; 
+        }
+
+        .login-container {
+            background-color: var(--white);
+            padding: 2.5rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            opacity: 0; 
+            transition: opacity 1s ease-in;
+        }
+
+        .logo-box img { width: 100px; margin-bottom: 15px; }
+        h2 { color: var(--primary-blue); margin: 0 0 5px 0; }
+        .subtitle { color: #666; font-size: 0.85rem; margin-bottom: 25px; }
+        .role-selector { display: flex; background: #eee; border-radius: 50px; padding: 5px; margin-bottom: 25px; }
+        .role-btn { flex: 1; border: none; padding: 10px; border-radius: 50px; background: transparent; cursor: pointer; font-family: 'Kanit'; transition: 0.3s; font-weight: 500; color: #777; }
+        .role-btn.active { background: var(--primary-blue); color: white; }
+        .input-group { text-align: left; margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 8px; color: #444; font-size: 0.9rem; }
+        .input-group input { width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 12px; box-sizing: border-box; outline: none; font-size: 1rem; }
+        .input-group input:focus { border-color: var(--primary-blue); }
+        .login-btn { width: 100%; padding: 14px; background-color: var(--primary-blue); color: white; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .login-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .footer-links { margin-top: 20px; display: flex; justify-content: flex-start; font-size: 0.85rem; }
+        .footer-links a { color: var(--primary-blue); text-decoration: none; }
+        .create-new { margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; font-size: 0.9rem; }
+        .create-new a { color: #00b894; font-weight: 600; text-decoration: none; }
+        .hidden { display: none; }
+
+        .loader-dots { margin-top: 30px; display: flex; gap: 8px; }
+        .dot { width: 10px; height: 10px; background-color: var(--primary-blue); border-radius: 50%; animation: pulse 1.5s infinite ease-in-out; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes pulse { 0%, 80%, 100% { transform: scale(0); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<div id="video-overlay" onclick="skipVideo()">
+    <video id="intro-video" autoplay muted playsinline onended="skipVideo()">
+        <source src="หุ่นยนต์หย่อนขวดเข้าตู้.mp4" type="video/mp4"> Your browser does not support the video tag.
+    </video>
+    <div class="skip-hint">แตะเพื่อข้ามวิดีโอ</div>
+</div>
+
+<div id="splash-screen">
+    <div id="logo-stage">
+        <div class="logo-wrapper-splash">
+            <img src="logo.png" class="logo-img-splash" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1598/1598196.png'">
+        </div>
+        <div class="loader-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+</div>
+
+<div class="login-container" id="login-form-box">
+    <div class="logo-box">
+        <img src="logo.png" alt="Logo">
+    </div>
+    <h2>Smart Eco</h2>
+    <div id="error-message" style="display: none; color: #ff4757; background: #fff1f2; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 0.85rem; border: 1px solid #ffcccb;">
+    </div>
+    <div class="subtitle">แลกเปลี่ยนโลก เพื่ออนาคตที่ดีกว่า</div>
+
+    <div class="role-selector">
+        <button id="btn-user" class="role-btn active" onclick="switchRole('user')">ผู้ใช้งาน</button>
+        <button id="btn-admin" class="role-btn" onclick="switchRole('admin')">แอดมิน</button>
+    </div>
+
+    <form id="loginForm">
+        <div class="input-group" id="email-field">
+            <label>เบอร์โทรศัพท์</label>
+            <input type="text" id="username" placeholder="08x-xxx-xxxx">
+        </div>
+        <div class="input-group">
+            <label id="pass-label">รหัสผ่าน</label>
+            <input type="password" id="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="login-btn">เข้าสู่ระบบ</button>
+    </form>
+
+    <div class="footer-links" id="helper-links">
+        <a href="forgot_password.html">ลืมรหัสผ่าน?</a>
+    </div>
+    <div class="create-new" id="signup-link">
+        ยังไม่มีบัญชี? <a href="signup.html">สร้างบัญชีใหม่</a>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ",
+        authDomain: "smart-eco-app.firebaseapp.com",
+        databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "smart-eco-app",
+        storageBucket: "smart-eco-app.firebasestorage.app",
+        messagingSenderId: "126722469073",
+        appId: "1:126722469073:web:01d58d4373305fc36c29f0",
+        measurementId: "G-MD69RZ6SEB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 1. ระบบข้ามวิดีโอ
+    window.skipVideo = function() {
+        const videoOverlay = document.getElementById('video-overlay');
+        const video = document.getElementById('intro-video');
+        if (videoOverlay) {
+            video.pause();
+            videoOverlay.style.opacity = '0';
+            setTimeout(() => {
+                videoOverlay.style.display = 'none';
+                startSplashScreen();
+            }, 600);
+        }
+    };
+
+    // 2. ระบบ Splash Screen
+    function startSplashScreen() {
+        const splashScreen = document.getElementById('splash-screen');
+        const loginBox = document.getElementById('login-form-box');
+
+        setTimeout(() => {
+            splashScreen.style.opacity = '0'; 
+            loginBox.style.opacity = '1'; 
+
+            setTimeout(() => {
+                splashScreen.style.display = 'none'; 
+                document.body.style.overflow = 'auto'; 
+            }, 800);
+        }, 1000);
+    }
+
+    window.addEventListener('load', () => {
+        if (sessionStorage.getItem('videoPlayed')) {
+            document.getElementById('video-overlay').style.display = 'none';
+            startSplashScreen();
+        } else {
+            sessionStorage.setItem('videoPlayed', 'true');
+        }
+    });
+
+    let currentRole = 'user';
+
+    window.switchRole = function(role) {
+        currentRole = role;
+        const emailField = document.getElementById('email-field');
+        const helperLinks = document.getElementById('helper-links');
+        const signupLink = document.getElementById('signup-link');
+        const btnUser = document.getElementById('btn-user');
+        const btnAdmin = document.getElementById('btn-admin');
+        const passLabel = document.getElementById('pass-label');
+        
+        document.getElementById('password').value = '';
+
+        if (role === 'admin') {
+            emailField.classList.add('hidden');
+            helperLinks.classList.add('hidden');
+            signupLink.classList.add('hidden');
+            btnAdmin.classList.add('active');
+            btnUser.classList.remove('active');
+            passLabel.innerText = "รหัสผ่านแอดมิน";
+        } else {
+            emailField.classList.remove('hidden');
+            helperLinks.classList.remove('hidden');
+            signupLink.classList.remove('hidden');
+            btnUser.classList.add('active');
+            btnAdmin.classList.remove('active');
+            passLabel.innerText = "รหัสผ่าน";
+        }
+    };
+
+    document.getElementById('loginForm').onsubmit = async function(event) {
+        event.preventDefault();
+        const usernameInput = document.getElementById('username').value;
+        const passInput = document.getElementById('password').value;
+        const errorBox = document.getElementById('error-message');
+
+        const showErr = (msg) => {
+            errorBox.innerText = msg;
+            errorBox.style.display = 'block';
+            setTimeout(() => { errorBox.style.display = 'none'; }, 4000);
+        };
+
+        if (currentRole === 'admin') {
+            if (passInput === '123456789') {
+                window.location.href = 'admin_home.html';
+            } else {
+                showErr('❌ รหัสผ่านแอดมินไม่ถูกต้อง!');
+            }
+        } else {
+            if (!usernameInput) return showErr('❌ กรุณากรอกเบอร์โทรศัพท์');
+            
+            const dbRef = ref(db);
+            try {
+                const snapshot = await get(child(dbRef, `users/${usernameInput}`));
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    if (userData.password === passInput) {
+                        sessionStorage.setItem('currentUserId', usernameInput);
+                        // แก้จาก home.html เป็น user_home.html
+                        window.location.href = 'user_home.html'; 
+                    } else {
+                        showErr('❌ รหัสผ่านไม่ถูกต้อง! กรุณาลองใหม่');
+                    }
+                } else {
+                    showErr('❌ ไม่พบเบอร์โทรศัพท์นี้ในระบบ');
+                }
+            } catch (error) {
+                console.error(error);
+                showErr('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+            }
+        }
+    };
+</script>
+</body>
+</html>

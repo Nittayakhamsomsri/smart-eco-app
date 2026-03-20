@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Reports & Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary-blue: #2D68C4; --white: #FFFFFF; --bg-gray: #f1f5f9; }
+        body { font-family: 'Kanit', sans-serif; background: #cbd5e1; margin: 0; }
+        .phone-wrapper { width: 100%; max-width: 500px; margin: 0 auto; min-height: 100vh; background: var(--bg-gray); display: flex; flex-direction: column; }
+        .admin-header { background: var(--white); padding: 35px 20px; text-align: center; border-bottom: 2px solid #e2e8f0; }
+        .admin-header h2 { margin: 0; color: var(--primary-blue); }
+        .content-area { flex: 1; padding: 15px 15px 100px 15px; }
+
+        /* Report Card */
+        .report-card { background: white; padding: 15px; border-radius: 20px; margin-bottom: 15px; border-left: 5px solid #ff4757; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
+        .report-card.resolved { border-left-color: #10b981; opacity: 0.8; }
+        .new-badge { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; padding: 2px 10px; border-radius: 10px; font-size: 0.65rem; font-weight: 600; }
+
+        /* Chat Section in Card */
+        .chat-preview-box { background: #f8fafc; border-radius: 12px; padding: 10px; margin-top: 10px; border: 1px dashed #cbd5e1; }
+        .last-msg { font-size: 0.75rem; color: #64748b; display: block; margin-bottom: 5px; }
+        .chat-input-group { display: flex; gap: 8px; margin-top: 10px; }
+        .chat-input-group input { flex: 1; padding: 8px 12px; border-radius: 20px; border: 1px solid #e2e8f0; font-family: 'Kanit'; font-size: 0.8rem; outline: none; }
+        .chat-input-group input:focus { border-color: var(--primary-blue); }
+        .send-mini-btn { background: var(--primary-blue); color: white; border: none; padding: 5px 15px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; font-family: 'Kanit'; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 500px; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-radius: 22px 22px 0 0; box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1); }
+        .nav-btn { border: none; background: none; font-family: 'Kanit'; font-size: 0.75rem; color: #94a3b8; cursor: pointer; }
+        .nav-btn.active { color: var(--primary-blue); font-weight: 600; }
+        .nav-btn span { display: block; font-size: 1.3rem; }
+    </style>
+</head>
+
+<body>
+    <div class="phone-wrapper">
+        <div class="admin-header"><h2>📩 จัดการแจ้งปัญหา & แชท</h2></div>
+        <div class="content-area" id="list-container">กำลังโหลด...</div>
+        
+        <div class="bottom-nav">
+            <button class="nav-btn" onclick="location.href='admin_home.html'"><span>📊</span>หน้าแรก</button>
+            <button class="nav-btn active" onclick="location.href='admin_reports.html'"><span>📩</span>ปัญหา</button>
+            <button class="nav-btn" onclick="location.href='admin_summary.html'"><span>📑</span>สรุปผล</button>
+            <button class="nav-btn" onclick="location.href='admin_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" onclick="location.href='admin_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update, push, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+        
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        onValue(ref(db, 'reports'), snap => {
+            const data = snap.val();
+            const cont = document.getElementById('list-container');
+            if (data) {
+                const arr = Object.keys(data).map(k => ({ id: k, ...data[k] }));
+                arr.sort((a, b) => {
+                    const statusA = (a.status === 'รอดำเนินการ' || a.status === 'Pending') ? 0 : 1;
+                    const statusB = (b.status === 'รอดำเนินการ' || b.status === 'Pending') ? 0 : 1;
+                    if (statusA !== statusB) return statusA - statusB;
+                    return b.id.localeCompare(a.id);
+                });
+
+                cont.innerHTML = arr.map((item, index) => {
+                    const isDevice = item.device_id !== undefined;
+                    const isPending = item.status === 'รอดำเนินการ' || item.status === 'Pending';
+                    const isNewest = index === 0 && isPending;
+
+                    return `
+                    <div class="report-card ${!isPending ? 'resolved' : ''}" style="border-left-color:${isDevice ? '#f59e0b' : ''}">
+                        ${isNewest ? '<div class="new-badge">ล่าสุด</div>' : ''}
+                        <strong>${isDevice ? '🤖 ตู้:' + item.device_id : '👤 ' + item.userName}</strong>
+                        <div style="font-size:0.7rem; color:#64748b;">ส่งเมื่อ: ${item.date || 'ไม่ระบุ'}</div>
+                        <p style="background:#f8fafc; padding:10px; border-radius:10px; font-size:0.85rem; margin:10px 0;">${item.issue || item.message}</p>
+                        
+                        <div class="chat-preview-box">
+                            <div id="last-msg-${item.id}" class="last-msg">กำลังโหลดแชทล่าสุด...</div>
+                            <div class="chat-input-group">
+                                <input type="text" id="input-${item.id}" placeholder="พิมพ์ตอบกลับที่นี่...">
+                                <button class="send-mini-btn" onclick="window.quickReply('${item.id}')">ส่ง</button>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+                            <span style="font-size:0.75rem; font-weight:600; color:${isPending ? '#ef4444' : '#10b981'}">● ${isPending ? 'รอดำเนินการ' : 'เสร็จสิ้น'}</span>
+                            <div style="display:flex; gap:5px">
+                                <button onclick="location.href='admin_chat.html?reportId=${item.id}&userId=${item.userId}'" style="background:#eee; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:0.75rem;">ขยายแชท ↗</button>
+                                ${isPending ? `<button onclick="window.done('${item.id}')" style="background:#10b981; color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:0.75rem;">ปิดงาน</button>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                // ดึงแชทล่าสุดมาแสดง
+                arr.forEach(item => {
+                    onValue(ref(db, `chats/${item.id}`), chatSnap => {
+                        const chats = chatSnap.val();
+                        const msgDiv = document.getElementById(`last-msg-${item.id}`);
+                        if (chats) {
+                            const lastChat = Object.values(chats).pop();
+                            msgDiv.innerText = (lastChat.sender === 'admin' ? '✅ คุณ: ' : '📩 ลูกค้า: ') + lastChat.text;
+                        } else {
+                            msgDiv.innerText = "ยังไม่มีการพูดคุย";
+                        }
+                    });
+                });
+            } else { cont.innerHTML = "ไม่มีข้อมูลรายการแจ้งปัญหา"; }
+        });
+
+        // ฟังก์ชันตอบกลับด่วน
+        window.quickReply = (reportId) => {
+            const input = document.getElementById(`input-${reportId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            push(ref(db, `chats/${reportId}`), {
+                sender: 'admin',
+                text: text,
+                time: new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: serverTimestamp()
+            }).then(() => {
+                input.value = "";
+                alert('ส่งคำตอบแล้ว');
+            });
+        };
+
+        window.done = (id) => {
+            if (confirm('ยืนยันการแก้ไขเสร็จสิ้น?')) {
+                update(ref(db, `reports/${id}`), { status: 'แก้ไขเรียบร้อยแล้ว' });
+            }
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+#define WIFI_SSID "iPhone"
+#define WIFI_PASSWORD "0828534895"
+#define FIREBASE_HOST "smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app"
+#define FIREBASE_AUTH "ol3nXLLpSEABBbTKFaJvVSBdyNEwBrwwdhXNPUNM"

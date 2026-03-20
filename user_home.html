@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Eco - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2D68C4;
+            --mint-green: #98FFD9;
+            --white: #FFFFFF;
+            --dark-blue: #1e4b91;
+            --text-gray: #64748b;
+            --eco-green: #065f46;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #e2e8f0;
+            margin: 0;
+            overscroll-behavior-y: contain;
+        }
+
+        .screen {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            margin: 0 auto;
+            background: #f8fafc;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            color: white;
+            padding: 40px 20px 60px 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* --- Side Menu --- */
+        .menu-trigger {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.6rem;
+            color: white;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 280px;
+            height: 100%;
+            background: white;
+            z-index: 2000;
+            transition: 0.3s;
+            box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .side-menu.active {
+            right: 0;
+        }
+
+        .menu-header {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            padding: 40px 20px;
+            color: white;
+            text-align: center;
+        }
+
+        #menu-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid var(--mint-green);
+            margin-bottom: 10px;
+            object-fit: cover;
+        }
+
+        .menu-list {
+            padding: 15px 0;
+        }
+
+        .menu-item {
+            padding: 15px 25px;
+            font-size: 0.95rem;
+            color: #333;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            background: #f0f4f8;
+            color: var(--primary-blue);
+        }
+
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1500;
+        }
+
+        .menu-overlay.active {
+            display: block;
+        }
+
+        .points-container {
+            background: white;
+            margin: -35px 15px 15px 15px;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 15;
+        }
+
+        .app-logo-left {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-right: 10px;
+        }
+
+        .points-center {
+            text-align: center;
+            flex: 1;
+        }
+
+        .points-value {
+            font-size: 1.8rem;
+            color: var(--primary-blue);
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .user-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+        }
+
+        .user-widget img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--mint-green);
+            object-fit: cover;
+        }
+
+        #level-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: white;
+            margin-top: 4px;
+        }
+
+        .progress-bg {
+            width: 100%;
+            background: #eee;
+            height: 4px;
+            border-radius: 10px;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        #level-progress {
+            height: 100%;
+            background: var(--mint-green);
+            transition: width 0.5s ease;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 5px 15px 100px 15px;
+        }
+
+        .co2-highlight-card {
+            background: #f0fff4;
+            border: 2.5px solid var(--mint-green);
+            padding: 18px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(152, 255, 217, 0.2);
+        }
+
+        .co2-icon-box {
+            font-size: 2rem;
+        }
+
+        .co2-text-main {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--eco-green);
+            line-height: 1.2;
+        }
+
+        .co2-text-sub {
+            font-size: 0.85rem;
+            color: var(--eco-green);
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            padding: 18px 10px;
+            border-radius: 22px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .plastic-bg {
+            background-color: #E2FBF1;
+            color: #065f46;
+        }
+
+        .metal-bg {
+            background-color: #D6E8FE;
+            color: #1e4b91;
+        }
+
+        .history-card {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            border: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .history-card:active {
+            transform: scale(0.98);
+            background: #f8fafc;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 85%;
+            max-width: 350px;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.95rem;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            border: none;
+            background: none;
+            font-family: 'Kanit';
+            font-size: 0.75rem;
+            color: #94a3b8;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .nav-btn.active {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .nav-btn span {
+            display: block;
+            font-size: 1.3rem;
+        }
+
+        /* --- Custom About Modal --- */
+        .custom-about-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .about-body {
+            background: white;
+            width: 100%;
+            max-width: 320px;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="screen">
+        <div class="menu-trigger" onclick="window.toggleMenu()">☰</div>
+
+        <div id="side-menu" class="side-menu">
+            <div class="menu-header">
+                <img id="menu-avatar" src="https://www.w3schools.com/howto/img_avatar.png">
+                <div id="menu-user-name" style="font-weight: 500;">กำลังโหลด...</div>
+            </div>
+            <div class="menu-list">
+                <div class="menu-item" id="menu-ebook" onclick="location.href='user_favorites.html'">📚 E-book ของฉัน
+                </div>
+                <div class="menu-item" id="menu-stats" onclick="location.href='user_stats.html'">🏆 สถิติของฉัน</div>
+                <div class="menu-item" id="menu-report" onclick="location.href='user_reports.html'">⚠️ แจ้งปัญหา</div>
+                <div class="menu-item" id="menu-about" onclick="window.openAbout()">ℹ️ เกี่ยวกับแอป</div>
+                <div class="menu-item" id="menu-lang" onclick="window.switchLanguage()">🌐 เปลี่ยนภาษา (TH/EN)</div>
+                <hr style="border: 0.5px solid #eee; margin: 10px 0;">
+                <div class="menu-item" id="menu-logout" style="color: #ff4757;" onclick="window.logout()">ออกจากระบบ
+                </div>
+            </div>
+        </div>
+
+        <div id="menu-overlay" class="menu-overlay" onclick="window.toggleMenu()"></div>
+
+        <div class="app-header">
+            <h1 style="margin:0">Smart Eco</h1>
+            <p id="lang-subtitle" style="margin:5px 0 0">แลกเปลี่ยนโลก เพื่ออนาคตที่ดีกว่า</p>
+        </div>
+
+        <div class="points-container">
+            <img src="logo.png" class="app-logo-left"
+                onerror="this.src='https://cdn-icons-png.flaticon.com/512/1598/1598196.png'">
+            <div class="points-center">
+                <small id="lang-points-label" style="color:var(--text-gray)">แต้มของคุณ</small>
+                <div class="points-value" id="top-points">0</div>
+            </div>
+            <div class="user-widget">
+                <img id="top-avatar" src="https://www.w3schools.com/howto/img_avatar.png">
+                <div id="level-badge">Lv.1 Bronze</div>
+                <div class="progress-bg">
+                    <div id="level-progress"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="co2-highlight-card">
+                <div class="co2-icon-box">🌿</div>
+                <div>
+                    <div id="lang-co2-label" class="co2-text-sub">ช่วยลดก๊าซคาร์บอน (CO2) ไปแล้ว</div>
+                    <div class="co2-text-main"><span id="co2-value">0.00</span> kg</div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card plastic-bg">
+                    <img src="1.png" style="width: 50px; height: 50px; margin-bottom: 5px;">
+                    <div id="lang-plastic">พลาสติก</div>
+                    <strong id="plastic-display">0 ใบ</strong>
+                </div>
+                <div class="stat-card metal-bg">
+                    <img src="2.png" style="width: 50px; height: 50px; margin-bottom: 5px;">
+                    <div id="lang-metal">โลหะ</div>
+                    <strong id="metal-display">0 ใบ</strong>
+                </div>
+            </div>
+
+            <h5 id="lang-history-title" style="margin:10px 0; color:var(--text-gray)">📜 ประวัติ (คลิกเพื่อดูรายละเอียด)
+            </h5>
+            <div id="history-list-container"></div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn active" id="nav-home"
+                onclick="location.href='user_home.html'"><span>🏠</span>หน้าแรก</button>
+            <button class="nav-btn" id="nav-rewards"
+                onclick="location.href='user_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" id="nav-stats"
+                onclick="location.href='user_stats.html'"><span>🏆</span>สถิติ</button>
+            <button class="nav-btn" id="nav-profile"
+                onclick="location.href='user_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </nav>
+    </div>
+
+    <div id="detail-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="lang-modal-title" style="margin-top:0; color:var(--primary-blue)">📜 รายละเอียดสะสม</h3>
+            <div id="detail-body"></div>
+            <button id="lang-close-btn" onclick="document.getElementById('detail-modal').style.display='none'"
+                style="margin-top:20px; width:100%; padding:12px; background:var(--primary-blue); color:white; border:none; border-radius:15px; font-weight:600; cursor:pointer; font-family:'Kanit';">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <div id="about-modal" class="custom-about-modal" onclick="window.closeAbout()">
+        <div class="about-body" onclick="event.stopPropagation()">
+            <h3 style="margin-top: 0; color: var(--primary-blue);">Smart Eco v1.0</h3>
+            <div style="font-size: 0.95rem; color: #475569; line-height: 1.6; text-align: left; padding: 10px;">
+                แอปพลิเคชันสำหรับส่งเสริมการรีไซเคิลและแลกเปลี่ยนขยะ<br><br>
+                <b>จัดทำโดย:</b><br>
+                • นิตยา คำสมศรี (67010974005)<br>
+                • ปาริชาติ ทัพธานี (67010974010)
+            </div>
+            <button onclick="window.closeAbout()" style="margin-top:20px; width:100%; padding:12px; background:var(--primary-blue); color:white; border:none; border-radius:15px; font-weight:600; cursor:pointer; font-family:'Kanit';">ตกลง</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const uid = sessionStorage.getItem('currentUserId');
+
+        // --- ระบบแปลภาษา ---
+        const translations = {
+            th: {
+                subtitle: "แลกเปลี่ยนโลก เพื่ออนาคตที่ดีกว่า",
+                points: "แต้มของคุณ",
+                co2: "ช่วยลดก๊าซคาร์บอน (CO2) ไปแล้ว",
+                plastic: "พลาสติก",
+                metal: "โลหะ",
+                history: "📜 ประวัติ (คลิกเพื่อดูรายละเอียด)",
+                unit: "ใบ",
+                nav_home: "หน้าแรก", nav_rewards: "รางวัล", nav_stats: "สถิติ", nav_profile: "โปรไฟล์",
+                menu_ebook: "📚 E-book ของฉัน", menu_stats: "🏆 สถิติของฉัน", menu_report: "⚠️ แจ้งปัญหา", menu_about: "ℹ️ เกี่ยวกับแอป", menu_lang: "🌐 เปลี่ยนภาษา (TH/EN)", menu_logout: "ออกจากระบบ",
+                modal_title: "📜 รายละเอียดสะสม", modal_close: "ปิดหน้าต่าง"
+            },
+            en: {
+                subtitle: "Exchange the world for a better future",
+                points: "Your Points",
+                co2: "CO2 Reduction Achieved",
+                plastic: "Plastic",
+                metal: "Metal",
+                history: "📜 History (Click for details)",
+                unit: "pcs",
+                nav_home: "Home", nav_rewards: "Rewards", nav_stats: "Stats", nav_profile: "Profile",
+                menu_ebook: "📚 My E-books", menu_stats: "🏆 My Stats", menu_report: "⚠️ Reported Issues", menu_about: "ℹ️ About App", menu_lang: "🌐 Change Language", menu_logout: "Logout",
+                modal_title: "📜 Collection Details", modal_close: "Close"
+            }
+        };
+
+        let currentLang = localStorage.getItem('appLang') || 'th';
+
+        window.updateLanguage = function () {
+            const lang = translations[currentLang];
+            document.getElementById('lang-subtitle').innerText = lang.subtitle;
+            document.getElementById('lang-points-label').innerText = lang.points;
+            document.getElementById('lang-co2-label').innerText = lang.co2;
+            document.getElementById('lang-plastic').innerText = lang.plastic;
+            document.getElementById('lang-metal').innerText = lang.metal;
+            document.getElementById('lang-history-title').innerText = lang.history;
+            document.getElementById('lang-modal-title').innerText = lang.modal_title;
+            document.getElementById('lang-close-btn').innerText = lang.modal_close;
+
+            document.getElementById('menu-ebook').innerText = lang.menu_ebook;
+            document.getElementById('menu-stats').innerText = lang.menu_stats;
+            document.getElementById('menu-report').innerText = lang.menu_report;
+            document.getElementById('menu-about').innerText = lang.menu_about;
+            document.getElementById('menu-lang').innerText = lang.menu_lang;
+            document.getElementById('menu-logout').innerText = lang.menu_logout;
+
+            document.getElementById('nav-home').innerHTML = `<span>🏠</span>${lang.nav_home}`;
+            document.getElementById('nav-rewards').innerHTML = `<span>🎁</span>${lang.nav_rewards}`;
+            document.getElementById('nav-stats').innerHTML = `<span>🏆</span>${lang.nav_stats}`;
+            document.getElementById('nav-profile').innerHTML = `<span>👤</span>${lang.nav_profile}`;
+        };
+
+        window.switchLanguage = function () {
+            currentLang = currentLang === 'th' ? 'en' : 'th';
+            localStorage.setItem('appLang', currentLang);
+            window.updateLanguage();
+        };
+
+        window.toggleMenu = function () {
+            document.getElementById('side-menu').classList.toggle('active');
+            document.getElementById('menu-overlay').classList.toggle('active');
+        };
+
+        // --- Custom Modal สำหรับ เกี่ยวกับแอป ---
+        window.openAbout = function() {
+            document.getElementById('about-modal').style.display = 'flex';
+            window.toggleMenu(); // ปิดเมนูข้างหลัง
+        };
+        window.closeAbout = function() {
+            document.getElementById('about-modal').style.display = 'none';
+        };
+
+        window.logout = function () {
+            if (confirm(currentLang === 'th' ? 'ต้องการออกจากระบบ?' : 'Do you want to logout?')) {
+                sessionStorage.clear();
+                location.href = 'index.html';
+            }
+        };
+
+        let globalHistory = {};
+
+        function getLevelInfo(pts) {
+            if (pts <= 500) return { name: "Lv.1 Bronze", color: "#cd7f32", percent: (pts / 500) * 100 };
+            if (pts <= 1500) return { name: "Lv.2 Silver", color: "#C0C0C0", percent: ((pts - 500) / 1000) * 100 };
+            return { name: "Lv.3 Gold", color: "#FFD700", percent: 100 };
+        }
+
+        onValue(ref(db, `users/${uid}`), (snap) => {
+            const u = snap.val();
+            if (u) {
+                const plastic = u.plastic_count || 0;
+                const metal = u.metal_count || 0;
+                document.getElementById('top-points').innerText = (u.points || 0).toLocaleString();
+                document.getElementById('plastic-display').innerText = plastic + " " + translations[currentLang].unit;
+                document.getElementById('metal-display').innerText = metal + " " + translations[currentLang].unit;
+                document.getElementById('co2-value').innerText = (plastic * 0.1 + metal * 0.15).toFixed(2);
+
+                if (u.pic) {
+                    document.getElementById('top-avatar').src = u.pic;
+                    document.getElementById('menu-avatar').src = u.pic;
+                }
+                if (u.name) document.getElementById('menu-user-name').innerText = u.name;
+
+                const lv = getLevelInfo(u.points || 0);
+                document.getElementById('level-badge').innerText = lv.name;
+                document.getElementById('level-badge').style.backgroundColor = lv.color;
+                document.getElementById('level-progress').style.width = lv.percent + "%";
+            }
+        });
+
+        // --- ส่วนแก้ไข: ดึงข้อมูลประวัติ (History) ให้รองรับข้อมูลจากตู้ IoT ---
+        onValue(ref(db, `history/${uid}`), (snap) => {
+            const data = snap.val();
+            globalHistory = data || {};
+            const cont = document.getElementById('history-list-container');
+            if (data) {
+                // ดึงรายการทั้งหมด เรียงจากใหม่ไปเก่า
+                cont.innerHTML = Object.keys(data).reverse().map(key => {
+                    const item = data[key];
+                    // ดึงหัวข้อจาก category หรือ type
+                    const displayTitle = item.category || item.type || 'รายการสะสม';
+                    // เช็กว่าเป็นรายการแลกหรือไม่
+                    const isRedeem = displayTitle.includes('แลก') || (item.category === "E-Book") || (item.points < 0);
+                    
+                    return `
+                    <div class="history-card" onclick="window.viewDetail('${key}')">
+                        <div>
+                            <b>${displayTitle}</b><br>
+                            <small style="color:gray">${item.date || '-'}</small>
+                        </div>
+                        <div style="font-weight:700; color:${isRedeem ? '#ef4444' : '#10b981'}">
+                            ${isRedeem ? '' : '+'}${item.points || 0}
+                        </div>
+                    </div>`;
+                }).join('');
+            } else {
+                cont.innerHTML = `<div style="text-align:center; padding:20px; color:gray;">ยังไม่มีประวัติรายการ</div>`;
+            }
+        });
+
+        window.viewDetail = (key) => {
+            const item = globalHistory[key];
+            if (!item) return;
+            const modal = document.getElementById('detail-modal');
+            const body = document.getElementById('detail-body');
+            const unit = translations[currentLang].unit;
+            
+            const displayTitle = item.category || item.type || 'รายการสะสม';
+            const isRedeem = displayTitle.includes('แลก') || item.points < 0;
+            
+            body.innerHTML = `
+                <div class="detail-row"><span>หัวข้อ:</span> <b>${displayTitle}</b></div>
+                <div class="detail-row"><span>วันที่:</span> <span>${item.date || '-'}</span></div>
+                <div class="detail-row"><span>พลาสติก:</span> <b>${item.plastic || 0} ${unit}</b></div>
+                <div class="detail-row"><span>โลหะ:</span> <b>${item.metal || 0} ${unit}</b></div>
+                <div class="detail-row" style="border:none; margin-top:10px;">
+                    <span>แต้ม:</span> <b style="color:${isRedeem ? '#ef4444' : '#10b981'}">${item.points || 0} pts</b>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        };
+
+        window.onclick = (e) => {
+            if (e.target.id === 'detail-modal') document.getElementById('detail-modal').style.display = 'none';
+        }
+
+        window.updateLanguage();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2D68C4;
+            --white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: #cbd5e1;
+            margin: 0;
+        }
+
+        .phone-wrapper {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #f1f5f9;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-header {
+            background: var(--white);
+            padding: 35px 20px;
+            text-align: center;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 15px;
+        }
+
+        .profile-card {
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .admin-main-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid #98FFD9;
+            object-fit: cover;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-top: 15px;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-sizing: border-box;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 14px;
+            background: #fff1f2;
+            color: #e11d48;
+            border: 2px solid #ffe4e6;
+            border-radius: 12px;
+            margin-top: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            border-radius: 22px 22px 0 0;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn {
+            border: none;
+            background: none;
+            font-family: 'Kanit';
+            font-size: 0.75rem;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+
+        .nav-btn.active {
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .nav-btn span {
+            display: block;
+            font-size: 1.3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="phone-wrapper">
+        <div class="admin-header">
+            <h2> โปรไฟล์แอดมิน</h2>
+        </div>
+        <div class="content-area">
+            <div class="profile-card">
+                <img id="admin-pic" src="https://cdn-icons-png.flaticon.com/512/2206/2206368.png"
+                    class="admin-main-pic">
+                <div class="form-group"><label>ชื่อแอดมิน</label><input type="text" id="admin-name"></div>
+                <div class="form-group"><label>เบอร์โทร</label><input type="text" id="admin-phone"></div>
+                <button class="save-btn" onclick="window.save()">บันทึกข้อมูล</button>
+                <button class="logout-btn" onclick="if(confirm('ออก?')) location.href='index.html'">ออกจากระบบ</button>
+            </div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-btn" onclick="location.href='admin_home.html'"><span>📊</span>หน้าแรก</button>
+            <button class="nav-btn" onclick="location.href='admin_reports.html'"><span>📩</span>ปัญหา</button>
+            <button class="nav-btn" onclick="location.href='admin_summary.html'"><span>📑</span>สรุปผล</button>
+            <button class="nav-btn" onclick="location.href='admin_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" onclick="location.href='admin_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        onValue(ref(db, 'admin_profile/admin_default'), snap => {
+            const d = snap.val();
+            if (d) {
+                document.getElementById('admin-name').value = d.name || "";
+                document.getElementById('admin-phone').value = d.phone || "";
+                if (d.pic) document.getElementById('admin-pic').src = d.pic;
+            }
+        });
+        window.save = () => update(ref(db, 'admin_profile/admin_default'), { name: document.getElementById('admin-name').value, phone: document.getElementById('admin-phone').value }).then(() => alert('บันทึกแล้ว'));
+    </script>
+</body>
+
+</html>

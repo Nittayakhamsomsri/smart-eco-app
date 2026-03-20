@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Eco - My E-books</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary-blue: #2D68C4; 
+            --white: #FFFFFF; 
+            --mint-green: #98FFD9; 
+            --dark-mint: #76e3bc;
+            --text-gray: #64748b;
+        }
+        body { font-family: 'Kanit', sans-serif; background: #e2e8f0; margin: 0; }
+        .screen { width: 100%; max-width: 480px; min-height: 100vh; margin: 0 auto; background: #f8fafc; position: relative; padding-bottom: 100px; box-shadow: 0 0 25px rgba(0,0,0,0.1); }
+        
+        .header { background: linear-gradient(135deg, var(--mint-green), var(--dark-mint)); color: #065f46; padding: 30px 20px; text-align: center; border-radius: 0 0 30px 30px; position: relative; }
+        .back-btn { position: absolute; top: 25px; left: 20px; background: rgba(255,255,255,0.4); color: #065f46; border: none; padding: 5px 12px; border-radius: 12px; cursor: pointer; font-size: 0.8rem; font-weight: 500; }
+        
+        /* Tab System */
+        .tab-container { display: flex; justify-content: center; gap: 10px; margin: 20px 15px 10px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 15px; background: #eee; color: #777; cursor: pointer; font-family: 'Kanit'; font-weight: 500; transition: 0.3s; }
+        .tab-btn.active { background: var(--primary-blue); color: white; box-shadow: 0 4px 10px rgba(45, 104, 196, 0.3); }
+
+        .content-area { padding: 10px 15px; }
+        .ebook-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .ebook-card { background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; position: relative; transition: 0.3s; }
+        .ebook-card:active { transform: scale(0.98); }
+        .ebook-cover { width: 100%; height: 140px; object-fit: cover; }
+        .ebook-info { padding: 10px; text-align: center; }
+        .ebook-title { font-size: 0.8rem; font-weight: 500; color: #334155; margin-bottom: 8px; height: 38px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        
+        .btn-open { width: 100%; padding: 8px; background: var(--primary-blue); color: white; border: none; border-radius: 10px; font-size: 0.75rem; cursor: pointer; font-family: 'Kanit'; }
+        
+        /* ปุ่มหัวใจ ❤️ */
+        .heart-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); border: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 1rem; }
+
+        .empty-state { text-align: center; margin-top: 50px; color: #94a3b8; }
+        .empty-state span { font-size: 4rem; display: block; margin-bottom: 10px; opacity: 0.5; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; display: flex; justify-content: space-around; padding: 12px 0; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 100; }
+        .nav-btn { border: none; background: none; font-family: 'Kanit'; font-size: 0.75rem; color: #94a3b8; cursor: pointer; }
+        .nav-btn.active { color: var(--primary-blue); font-weight: 600; }
+        .nav-btn span { display: block; font-size: 1.3rem; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 85%; max-width: 350px; padding: 25px; border-radius: 30px; text-align: center; }
+        #qr-img { width: 200px; height: 200px; margin: 15px auto; display: block; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="screen">
+        <button class="back-btn" onclick="location.href='user_profile.html'">← กลับ</button>
+        <div class="header">
+            <h2 style="margin:0">คลัง E-book ของฉัน</h2>
+            <small style="opacity:0.9">รวมเล่มโปรดและเล่มทั้งหมดที่คุณแลกไว้</small>
+        </div>
+
+        <div class="tab-container">
+            <button id="tab-all" class="tab-btn active" onclick="window.switchTab('all')">ทั้งหมด</button>
+            <button id="tab-fav" class="tab-btn" onclick="window.switchTab('fav')">เล่มโปรด ❤️</button>
+        </div>
+
+        <div class="content-area">
+            <div id="ebook-list" class="ebook-grid">
+                </div>
+            
+            <div id="empty-msg" class="empty-state" style="display:none;">
+                <span>📚</span>
+                <p id="empty-text">ยังไม่มี E-book ในขณะนี้</p>
+            </div>
+        </div>
+
+        <nav class="bottom-nav">
+            <button class="nav-btn" onclick="location.href='user_home.html'"><span>🏠</span>หน้าแรก</button>
+            <button class="nav-btn" onclick="location.href='user_rewards.html'"><span>🎁</span>รางวัล</button>
+            <button class="nav-btn" onclick="location.href='user_stats.html'"><span>🏆</span>สถิติ</button>
+            <button class="nav-btn active" onclick="location.href='user_profile.html'"><span>👤</span>โปรไฟล์</button>
+        </nav>
+    </div>
+
+    <div id="read-modal" class="modal">
+        <div class="modal-content">
+            <h4 id="book-name" style="margin-top:0; color:var(--primary-blue)"></h4>
+            <img id="qr-img" src="">
+            <p style="font-size:0.8rem; color:gray">สแกน QR Code เพื่อเริ่มอ่าน E-book</p>
+            <button class="btn-open" onclick="document.getElementById('read-modal').style.display='none'">ปิดหน้าต่าง</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-database.js";
+        
+        const firebaseConfig = { apiKey: "AIzaSyBQBpHijmAixJA5z2X1SiRsIvFT4-GIVIQ", authDomain: "smart-eco-app.firebaseapp.com", databaseURL: "https://smart-eco-app-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "smart-eco-app", storageBucket: "smart-eco-app.firebasestorage.app", messagingSenderId: "126722469073", appId: "1:126722469073:web:01d58d4373305fc36c29f0" };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const uid = sessionStorage.getItem('currentUserId');
+
+        let allBooks = [];
+        let currentMode = 'all'; // 'all' หรือ 'fav'
+
+        onValue(ref(db, `history/${uid}`), snap => {
+            const data = snap.val();
+            if(data) {
+                allBooks = Object.keys(data)
+                    .map(key => ({ id: key, ...data[key] }))
+                    .filter(item => item.category === "E-Book" && !item.isDeleted);
+                renderUI();
+            } else {
+                showEmpty();
+            }
+        });
+
+        function renderUI() {
+            const cont = document.getElementById('ebook-list');
+            const empty = document.getElementById('empty-msg');
+            
+            let displayList = currentMode === 'fav' 
+                ? allBooks.filter(b => b.isFavorite) 
+                : allBooks;
+
+            if(displayList.length > 0) {
+                empty.style.display = 'none';
+                cont.style.display = 'grid';
+                cont.innerHTML = displayList.map(b => `
+                    <div class="ebook-card">
+                        <button class="heart-btn" onclick="window.toggleFav('${b.id}', ${b.isFavorite})">
+                            ${b.isFavorite ? '❤️' : '🤍'}
+                        </button>
+                        <img src="${b.cover || 'https://via.placeholder.com/150x200?text=E-Book'}" class="ebook-cover">
+                        <div class="ebook-info">
+                            <div class="ebook-title">${b.type.replace('แลกรางวัล: ','')}</div>
+                            <button class="btn-open" onclick="window.openBook('${b.qr}', '${b.type}')">เปิดอ่าน</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                showEmpty();
+            }
+        }
+
+        window.switchTab = (mode) => {
+            currentMode = mode;
+            document.getElementById('tab-all').classList.toggle('active', mode === 'all');
+            document.getElementById('tab-fav').classList.toggle('active', mode === 'fav');
+            document.getElementById('empty-text').innerText = mode === 'fav' ? 'ยังไม่มีเล่มโปรดที่ถูกใจ' : 'ยังไม่มี E-book ในคลัง';
+            renderUI();
+        };
+
+        window.toggleFav = (id, currentStatus) => {
+            update(ref(db, `history/${uid}/${id}`), { isFavorite: !currentStatus });
+        };
+
+        window.openBook = (qr, name) => {
+            document.getElementById('book-name').innerText = name.replace('แลกรางวัล: ','');
+            document.getElementById('qr-img').src = qr || 'https://api.qrserver.com/v1/create-qr-code/?data=READ_EBOOK';
+            document.getElementById('read-modal').style.display = 'flex';
+        };
+
+        function showEmpty() {
+            document.getElementById('ebook-list').style.display = 'none';
+            document.getElementById('empty-msg').style.display = 'block';
+        }
+
+        window.onclick = (e) => {
+            if(e.target.className === 'modal') document.getElementById('read-modal').style.display = 'none';
+        };
+    </script>
+</body>
+</html>
